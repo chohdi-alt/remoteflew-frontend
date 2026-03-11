@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Update User Access</h2>
+
+<form class="dialog-body" [formGroup]="form">
+  <mat-form-field appearance="outline">
+    <mat-label>Roles</mat-label>
+    <mat-select formControlName="roles" multiple>
+      @for (role of data.availableRoles; track role) {
+        <mat-option [value]="role">{{ role }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-slide-toggle formControlName="active">Active</mat-slide-toggle>
+</form>
+
+<div class="dialog-actions">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" type="button" (click)="submit()">Save</button>
+</div>

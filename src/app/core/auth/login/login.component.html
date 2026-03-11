@@ -1,0 +1,23 @@
+<div class="login-page">
+  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h1>RemoteFlow Login</h1>
+
+    <label>
+      <span>Username</span>
+      <input type="text" formControlName="username" autocomplete="username" />
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input type="password" formControlName="password" autocomplete="current-password" />
+    </label>
+
+    @if (errorMessage) {
+      <p class="error">{{ errorMessage }}</p>
+    }
+
+    <button type="submit" [disabled]="isSubmitting || form.invalid">
+      {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
+    </button>
+  </form>
+</div>

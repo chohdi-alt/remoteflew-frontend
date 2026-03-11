@@ -1,0 +1,32 @@
+<section class="chart-card">
+  @if (title) {
+    <header class="chart-header">
+      <h3>{{ title }}</h3>
+    </header>
+  }
+
+  @if (isNonAxisChart) {
+    <apx-chart
+      [series]="nonAxisSeries"
+      [chart]="chart"
+      [labels]="categories"
+      [legend]="legend"
+      [dataLabels]="dataLabels"
+      [colors]="colorPalette"
+      [theme]="theme">
+    </apx-chart>
+  } @else {
+    <apx-chart
+      [series]="axisSeries"
+      [chart]="chart"
+      [xaxis]="xaxis"
+      [stroke]="stroke"
+      [grid]="grid"
+      [plotOptions]="plotOptions"
+      [legend]="legend"
+      [dataLabels]="dataLabels"
+      [colors]="colorPalette"
+      [theme]="theme">
+    </apx-chart>
+  }
+</section>

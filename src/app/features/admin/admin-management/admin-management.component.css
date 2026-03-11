@@ -1,0 +1,82 @@
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.table-card {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+}
+
+.table-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.table-header h3 {
+  color: #111811;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.manage-table {
+  width: 100%;
+}
+
+.forms-row {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.form-card {
+  border-radius: 12px;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.feedback-alert {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #166534;
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+  text-align: center;
+}
+
+.row-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.half-card {
+  flex: 1;
+  min-width: 320px;
+}
+
+::ng-deep .mat-mdc-tab-group {
+  --mdc-tab-indicator-active-indicator-color: #6366f1;
+  --mat-tab-header-active-label-text-color: #6366f1;
+}

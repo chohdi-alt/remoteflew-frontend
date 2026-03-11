@@ -1,0 +1,12 @@
+<section class="dashboard-shell">
+  <header class="dashboard-header">
+    <h1>{{ title }}</h1>
+    @if (subtitle) {
+      <p>{{ subtitle }}</p>
+    }
+  </header>
+
+  <main class="dashboard-content">
+    <ng-content></ng-content>
+  </main>
+</section>

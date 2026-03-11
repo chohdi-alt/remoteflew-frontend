@@ -1,1 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'ngx-toastr/toastr';
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  color: #0f172a;
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+  margin: 0;
+}

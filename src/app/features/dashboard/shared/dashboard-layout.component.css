@@ -1,0 +1,33 @@
+:host {
+  display: block;
+}
+
+.dashboard-shell {
+  background:
+    radial-gradient(circle at 96% 4%, #d6e7fb 0%, transparent 24%),
+    radial-gradient(circle at 10% 2%, #f6e3cf 0%, transparent 26%),
+    #f7f9fc;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.dashboard-header {
+  margin-bottom: 1.25rem;
+}
+
+.dashboard-header h1 {
+  color: #0f172a;
+  font-size: clamp(1.25rem, 2vw, 1.9rem);
+  font-weight: 700;
+  margin: 0;
+}
+
+.dashboard-header p {
+  color: #4b5563;
+  margin: 0.3rem 0 0;
+}
+
+.dashboard-content {
+  display: grid;
+  gap: 1rem;
+}

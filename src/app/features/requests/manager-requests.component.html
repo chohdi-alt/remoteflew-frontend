@@ -1,0 +1,24 @@
+<app-dashboard-layout
+  title="Manager Requests"
+  subtitle="Review pending manager validation tasks and approve or reject with an optional comment.">
+  <section class="toolbar">
+    <p class="hint">Reason is not exposed by the backend pending-validation DTO and is shown as unavailable.</p>
+    <div class="toolbar-actions">
+      <button mat-flat-button color="primary" type="button" (click)="refresh()">Refresh</button>
+    </div>
+  </section>
+
+  @if (viewModel$ | async; as vm) {
+    <app-request-table
+      [requests]="vm.requests"
+      [total]="vm.total"
+      [pageIndex]="vm.pageIndex"
+      [pageSize]="vm.pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      [loading]="(loading$ | async) ?? false"
+      (pageChange)="onPageChange($event)"
+      (approve)="onApprove($event)"
+      (reject)="onReject($event)">
+    </app-request-table>
+  }
+</app-dashboard-layout>

@@ -1,0 +1,53 @@
+<app-dashboard-layout
+  title="HR Dashboard"
+  subtitle="HR queue, throughput, and decision timing. Note: Averages and pending counts are calculated on full dataset and are not date-filtered.">
+  <section class="filter-row">
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input matInput type="date" [formControl]="fromControl" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input matInput type="date" [formControl]="toControl" />
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+  </section>
+
+  @if (dateRangeError$ | async; as error) {
+    <p class="filter-error">{{ error }}</p>
+  }
+
+  @if (dashboardData$ | async; as vm) {
+    @if (vm.showPendingWarning) {
+      <p class="pending-warning" title="Pending task count may be unavailable.">
+        <span class="pending-warning-icon" aria-hidden="true">⚠</span>
+        Pending task count may be unavailable.
+      </p>
+    }
+
+    <section class="kpi-grid">
+      <app-kpi-card title="Pending HR Tasks" icon="rule" color="warning" [value]="vm.raw.pendingHrTasks"></app-kpi-card>
+      <app-kpi-card title="Avg HR Decision Time" icon="schedule" color="neutral" [value]="vm.avgDecisionTimeText"></app-kpi-card>
+      <app-kpi-card title="Approved" icon="check_circle" color="success" [value]="vm.raw.totalsByStatus.APPROVED"></app-kpi-card>
+      <app-kpi-card title="Rejected" icon="cancel" color="danger" [value]="vm.raw.totalsByStatus.REJECTED"></app-kpi-card>
+    </section>
+
+    <section class="chart-grid">
+      <app-base-chart
+        title="Status Distribution"
+        [chartType]="vm.totalsPie.type"
+        [categories]="vm.totalsPie.categories"
+        [series]="vm.totalsPie.series">
+      </app-base-chart>
+
+      <app-base-chart
+        title="Monthly Trend"
+        [chartType]="vm.monthlyLine.type"
+        [categories]="vm.monthlyLine.categories"
+        [series]="vm.monthlyLine.series">
+      </app-base-chart>
+    </section>
+  }
+</app-dashboard-layout>

@@ -1,0 +1,301 @@
+<app-dashboard-layout title="Admin Management" subtitle="Manage Users, Roles, Teams, and HR/Managers Directory">
+
+  @if (feedbackMessage$ | async; as msg) {
+    <div class="feedback-alert">
+      {{ msg }}
+    </div>
+  }
+
+  <mat-tab-group animationDuration="0ms">
+    <!-- SECTION 1: Users -->
+    <mat-tab label="Users">
+      <div class="tab-content">
+        <mat-card class="table-card">
+          <header class="table-header">
+            <h3>User Directory</h3>
+          </header>
+          <div class="table-wrap">
+            <table mat-table [dataSource]="(users$ | async) || []" class="manage-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="roles">
+                <th mat-header-cell *matHeaderCellDef>Roles</th>
+                <td mat-cell *matCellDef="let row">{{ row.roles.join(', ') }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="team">
+                <th mat-header-cell *matHeaderCellDef>Team</th>
+                <td mat-cell *matCellDef="let row">{{ row.teamName || row.team?.name || 'Unassigned' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let row">
+                  <button mat-button color="primary" (click)="selectUserForRole(row.id)">Assign Role</button>
+                  <button mat-button color="accent" (click)="selectUserForTeam(row.id)">Assign Team</button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="userColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: userColumns"></tr>
+            </table>
+          </div>
+        </mat-card>
+
+        <div class="forms-row">
+          <mat-card class="form-card" id="user-form">
+            <mat-card-header>
+              <mat-card-title>Create User</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="createUserForm" (ngSubmit)="onCreateUser()" class="admin-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>First Name</mat-label>
+                  <input matInput formControlName="firstName" required />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Last Name</mat-label>
+                  <input matInput formControlName="lastName" required />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Email</mat-label>
+                  <input matInput type="email" formControlName="email" required />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Roles</mat-label>
+                  <mat-select formControlName="roles" multiple required>
+                    <mat-option value="EMPLOYEE">Employee</mat-option>
+                    <mat-option value="MANAGER">Manager</mat-option>
+                    <mat-option value="HR">HR</mat-option>
+                    <mat-option value="ADMIN">Admin</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="form-actions">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="createUserForm.invalid">Create</button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="form-card" id="role-form">
+            <mat-card-header>
+              <mat-card-title>Assign Role to</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="assignRoleForm" (ngSubmit)="onAssignRole()" class="admin-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>User</mat-label>
+                  <mat-select formControlName="userId" required>
+                    @for (user of users$ | async; track user.id) {
+                      <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Role</mat-label>
+                  <mat-select formControlName="roleName" required>
+                    <mat-option value="EMPLOYEE">Employee</mat-option>
+                    <mat-option value="MANAGER">Manager</mat-option>
+                    <mat-option value="HR">HR</mat-option>
+                    <mat-option value="ADMIN">Admin</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="form-actions">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="assignRoleForm.invalid">Assign Role</button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- SECTION 2: Teams -->
+    <mat-tab label="Teams">
+      <div class="tab-content">
+        <mat-card class="table-card">
+          <header class="table-header">
+            <h3>Team Directory</h3>
+          </header>
+          <div class="table-wrap">
+            <table mat-table [dataSource]="(teams$ | async) || []" class="manage-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Team Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="manager">
+                <th mat-header-cell *matHeaderCellDef>Manager</th>
+                <td mat-cell *matCellDef="let row">{{ row.manager?.firstName }} {{ row.manager?.lastName }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="membersCount">
+                <th mat-header-cell *matHeaderCellDef>Members Count</th>
+                <td mat-cell *matCellDef="let row">{{ row.membersCount || 0 }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let row">
+                  <button mat-button color="primary" (click)="selectTeamForManager(row.id)">Set Manager</button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="teamColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: teamColumns"></tr>
+            </table>
+          </div>
+        </mat-card>
+
+        <div class="forms-row">
+          <mat-card class="form-card" id="team-form">
+            <mat-card-header>
+              <mat-card-title>Create Team</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="createTeamForm" (ngSubmit)="onCreateTeam()" class="admin-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Team Name</mat-label>
+                  <input matInput formControlName="name" required />
+                </mat-form-field>
+                <div class="form-actions">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="createTeamForm.invalid">Create Team</button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="form-card" id="team-assign-form">
+            <mat-card-header>
+              <mat-card-title>Assign User to Team</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="assignTeamForm" (ngSubmit)="onAssignTeam()" class="admin-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>User</mat-label>
+                  <mat-select formControlName="userId" required>
+                    @for (user of users$ | async; track user.id) {
+                      <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Team</mat-label>
+                  <mat-select formControlName="teamId" required>
+                    @for (team of teams$ | async; track team.id) {
+                      <mat-option [value]="team.id">{{ team.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="form-actions">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="assignTeamForm.invalid">Assign</button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="form-card" id="manager-assign-form">
+            <mat-card-header>
+              <mat-card-title>Set Team Manager</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="assignManagerForm" (ngSubmit)="onAssignManager()" class="admin-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Team</mat-label>
+                  <mat-select formControlName="teamId" required>
+                    @for (team of teams$ | async; track team.id) {
+                      <mat-option [value]="team.id">{{ team.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Manager</mat-label>
+                  <mat-select formControlName="managerId" required>
+                    @for (manager of managers$ | async; track manager.id) {
+                      <mat-option [value]="manager.id">{{ manager.firstName }} {{ manager.lastName }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="form-actions">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="assignManagerForm.invalid">Set Manager</button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- SECTION 3: HR / Managers Directory -->
+    <mat-tab label="HR & Managers">
+      <div class="tab-content row-content">
+        <mat-card class="table-card half-card">
+          <header class="table-header">
+            <h3>Managers</h3>
+          </header>
+          <div class="table-wrap">
+            <table mat-table [dataSource]="(managers$ | async) || []" class="manage-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
+              </ng-container>
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+              </ng-container>
+              <ng-container matColumnDef="roles">
+                <th mat-header-cell *matHeaderCellDef>Roles</th>
+                <td mat-cell *matCellDef="let row">{{ row.roles.join(', ') }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="directoryColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: directoryColumns"></tr>
+            </table>
+          </div>
+        </mat-card>
+
+        <mat-card class="table-card half-card">
+          <header class="table-header">
+            <h3>HR Directory</h3>
+          </header>
+          <div class="table-wrap">
+            <table mat-table [dataSource]="(hrUsers$ | async) || []" class="manage-table">
+               <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
+              </ng-container>
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+              </ng-container>
+              <ng-container matColumnDef="roles">
+                <th mat-header-cell *matHeaderCellDef>Roles</th>
+                <td mat-cell *matCellDef="let row">{{ row.roles.join(', ') }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="directoryColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: directoryColumns"></tr>
+            </table>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+</app-dashboard-layout>

@@ -1,0 +1,125 @@
+<app-dashboard-layout
+  title="Create Telework Request"
+  subtitle="Select your telework period, check your weekly quota, and submit directly to the approval workflow.">
+  <section class="request-shell">
+    <mat-card class="request-card">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Employee workflow</p>
+          <h2>Create Telework Request</h2>
+          <p class="header-copy">
+            Keep your request aligned with the weekly quota policy. A justificatif is required when the request exceeds the
+            remaining quota.
+          </p>
+        </div>
+        <div class="account-chip">
+          <span class="chip-label">Employee</span>
+          <strong>{{ employeeLabel }}</strong>
+        </div>
+      </header>
+
+      <section class="quota-banner" aria-live="polite">
+        @if (isLoadingQuota) {
+          <p>Loading weekly quota...</p>
+        } @else {
+          <p>
+            You can request <strong>{{ quota.remainingDays }}</strong> telework day{{ quota.remainingDays === 1 ? '' : 's' }}
+            this week.
+          </p>
+          <small>
+            Policy: max {{ quota.maxDaysPerWeek }} day{{ quota.maxDaysPerWeek === 1 ? '' : 's' }} / used
+            {{ quota.usedDaysThisWeek }}.
+          </small>
+        }
+      </section>
+
+      <form class="request-form" [formGroup]="requestForm" (ngSubmit)="submitRequest()">
+        @if (isSingleDateMode) {
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Select telework date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="singlePicker"
+              formControlName="startDate"
+              [min]="minSelectableDate"
+              [matDatepickerFilter]="dateFilter"
+              autocomplete="off" />
+            <mat-datepicker-toggle matIconSuffix [for]="singlePicker"></mat-datepicker-toggle>
+            <mat-datepicker #singlePicker [dateClass]="singleDateClass"></mat-datepicker>
+            <mat-hint>Start date required. End date optional depending on quota.</mat-hint>
+            @if (requestForm.controls.startDate.touched && requestForm.controls.startDate.hasError('required')) {
+              <mat-error>Start date is required.</mat-error>
+            }
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Select telework range</mat-label>
+            <mat-date-range-input [rangePicker]="rangePicker" [min]="minSelectableDate" [dateFilter]="dateFilter">
+              <input matStartDate formControlName="startDate" placeholder="Start date" autocomplete="off" />
+              <input matEndDate formControlName="endDate" placeholder="End date" autocomplete="off" />
+            </mat-date-range-input>
+            <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #rangePicker [dateClass]="rangeDateClass"></mat-date-range-picker>
+            <mat-hint>Start date required. End date optional depending on quota.</mat-hint>
+            @if (requestForm.controls.startDate.touched && requestForm.controls.startDate.hasError('required')) {
+              <mat-error>Start date is required.</mat-error>
+            }
+            @if (requestForm.controls.endDate.touched && requestForm.controls.endDate.hasError('required')) {
+              <mat-error>End date is required.</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        @if (hasInvalidDateRange) {
+          <p class="form-error">Start date cannot be after end date.</p>
+        }
+
+        @if (exceedsRemainingQuota) {
+          <p class="quota-warning">
+            More than {{ quota.maxDaysPerWeek }} telework day{{ quota.maxDaysPerWeek === 1 ? '' : 's' }} per week
+            requires a justificatif.
+          </p>
+        }
+
+        <mat-form-field appearance="outline" class="reason-field">
+          <mat-label>Reason</mat-label>
+          <textarea
+            matInput
+            rows="5"
+            formControlName="reason"
+            placeholder="Add context for approvers, especially when requesting beyond remaining quota."></textarea>
+          <mat-hint align="start">Justificatif required if quota is exceeded.</mat-hint>
+          <mat-hint align="end">{{ requestForm.controls.reason.value.length }}/500</mat-hint>
+          @if (requestForm.controls.reason.hasError('maxlength')) {
+            <mat-error>Reason must not exceed 500 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        <section class="upload-panel">
+          <div class="upload-copy">
+            <h3>Justification file</h3>
+            <p>
+              Justificatif required if quota is exceeded; optional otherwise.
+            </p>
+          </div>
+
+          <input #fileInput class="file-input" type="file" (change)="onFileSelected($event)" />
+
+          <div class="upload-meta">
+            <span class="meta-label">Selected file</span>
+            <strong>{{ selectedFile?.name || 'No file selected' }}</strong>
+          </div>
+        </section>
+
+        <div class="action-row">
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting || isLoadingQuota">
+            {{ isSubmitting ? 'Submitting...' : 'Submit Request' }}
+          </button>
+          <button mat-stroked-button type="button" (click)="resetForm()" [disabled]="isSubmitting">
+            Reset Form
+          </button>
+        </div>
+      </form>
+    </mat-card>
+  </section>
+</app-dashboard-layout>

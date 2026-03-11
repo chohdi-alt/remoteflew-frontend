@@ -1,0 +1,38 @@
+<h2 mat-dialog-title>{{ data.mode === 'create' ? 'Create Team' : 'Team Details' }}</h2>
+
+<form class="dialog-body" [formGroup]="form">
+  <mat-form-field appearance="outline">
+    <mat-label>Team Name</mat-label>
+    <input matInput formControlName="name" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Manager</mat-label>
+    <mat-select formControlName="managerExternalId">
+      @for (manager of data.managers; track manager.externalId) {
+        <mat-option [value]="manager.externalId">
+          {{ manager.nom }} {{ manager.prenom }} ({{ manager.email }})
+        </mat-option>
+      }
+    </mat-select>
+    <mat-hint *ngIf="data.team?.manager as manager">Current: {{ manager }}</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Members</mat-label>
+    <mat-select formControlName="memberExternalIds" multiple>
+      @for (member of data.members; track member.externalId) {
+        <mat-option [value]="member.externalId">
+          {{ member.nom }} {{ member.prenom }} ({{ member.email }})
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</form>
+
+<div class="dialog-actions">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" type="button" (click)="submit()">
+    {{ data.mode === 'create' ? 'Create' : 'Save' }}
+  </button>
+</div>

@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+.toolbar {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.hint {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 0.5rem;
+}

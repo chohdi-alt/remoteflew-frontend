@@ -1,0 +1,53 @@
+<app-dashboard-layout
+  title="Team Management"
+  subtitle="Create teams, assign managers, and manage membership.">
+  <section class="toolbar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search teams</mat-label>
+      <input matInput type="text" [formControl]="searchControl" placeholder="Team name or manager" />
+    </mat-form-field>
+
+    <div class="toolbar-actions">
+      <button mat-flat-button color="primary" type="button" (click)="openCreateTeam()">Create Team</button>
+    </div>
+  </section>
+
+  @if (viewModel$ | async; as teams) {
+    <div class="table-card">
+      <table mat-table [dataSource]="teams" class="team-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Team</th>
+          <td mat-cell *matCellDef="let team">{{ team.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="manager">
+          <th mat-header-cell *matHeaderCellDef>Manager</th>
+          <td mat-cell *matCellDef="let team">{{ team.manager || 'Unassigned' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="members">
+          <th mat-header-cell *matHeaderCellDef>Members</th>
+          <td mat-cell *matCellDef="let team">{{ team.membersCount }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let team">
+            <button mat-stroked-button type="button" (click)="openViewTeam(team)">Manage</button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <div class="empty-state" *ngIf="teams.length === 0">
+        <p>No teams available.</p>
+      </div>
+    </div>
+  }
+
+  <div class="loading" *ngIf="loading$ | async">
+    <mat-spinner diameter="34"></mat-spinner>
+  </div>
+</app-dashboard-layout>

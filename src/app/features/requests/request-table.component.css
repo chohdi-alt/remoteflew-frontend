@@ -1,0 +1,89 @@
+:host {
+  display: block;
+}
+
+.table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.request-table {
+  min-width: 1040px;
+  width: 100%;
+}
+
+.employee-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-name {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.employee-id {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.status {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+}
+
+.status--submitted {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status--special {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status--approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.45rem;
+  min-width: 170px;
+}
+
+.empty-state {
+  color: #64748b;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.table-overlay {
+  align-items: center;
+  backdrop-filter: blur(3px);
+  background: rgba(255, 255, 255, 0.72);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}

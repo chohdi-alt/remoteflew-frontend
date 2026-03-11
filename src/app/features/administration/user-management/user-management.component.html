@@ -1,0 +1,39 @@
+<app-dashboard-layout
+  title="User Management"
+  subtitle="Manage Keycloak-synchronized users, roles, and activation status.">
+  @if (roles$ | async; as roles) {
+    <section class="toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search users</mat-label>
+        <input matInput type="text" [formControl]="searchControl" placeholder="Name, email, role, team" />
+      </mat-form-field>
+
+      <div class="toolbar-actions">
+        <button mat-stroked-button type="button" (click)="syncUsers()">Sync from Keycloak</button>
+        <button mat-stroked-button type="button" (click)="openCreateUser(roles)">Create User</button>
+        <button mat-flat-button color="primary" type="button" (click)="refresh()">Refresh</button>
+      </div>
+    </section>
+
+    <p class="hint">Search filters the current page of results because the backend does not expose a user search endpoint.</p>
+
+    @if (viewModel$ | async; as vm) {
+      <app-user-table
+        [users]="vm.users"
+        [total]="vm.total"
+        [pageIndex]="vm.pageIndex"
+        [pageSize]="vm.pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        [loading]="(loading$ | async) ?? false"
+        (pageChange)="onPageChange($event)"
+        (editUser)="openEditUser($event, roles)"
+        (toggleActivation)="toggleActivation($event.user, $event.active)">
+      </app-user-table>
+
+      <div class="footer-meta">
+        <span>{{ vm.filteredCount }} users shown</span>
+        <span>Total directory size: {{ vm.total }}</span>
+      </div>
+    }
+  }
+</app-dashboard-layout>

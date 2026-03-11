@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+.chart-card {
+  background: #fff;
+  border: 1px solid #dde3eb;
+  border-radius: 14px;
+  min-height: 240px;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.chart-header h3 {
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+
+::ng-deep .apexcharts-legend-text {
+  color: #1f2937;
+  font-family: inherit;
+}

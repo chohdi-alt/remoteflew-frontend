@@ -1,0 +1,56 @@
+<section class="inbox">
+  <header class="inbox__header">
+    <h2 i18n="@@inboxTitle">Inbox</h2>
+    <div class="inbox__filters">
+      <label>
+        <span i18n="@@inboxSearchLabel">Search</span>
+        <input
+          type="search"
+          [value]="searchQuery"
+          (input)="onSearchChange($any($event.target).value)"
+          placeholder="Search messages"
+          i18n-placeholder="@@inboxSearchPlaceholder" />
+      </label>
+      <label>
+        <span i18n="@@inboxStatusLabel">Status</span>
+        <select [value]="statusFilter" (change)="onStatusChange($any($event.target).value)">
+          <option value="all" i18n="@@inboxStatusAll">All</option>
+          <option value="unread" i18n="@@inboxStatusUnread">Unread</option>
+          <option value="read" i18n="@@inboxStatusRead">Read</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <div class="inbox__list">
+    <div *ngIf="messages.length === 0" class="inbox__empty" i18n="@@inboxEmpty">No messages found.</div>
+    <ul *ngIf="messages.length > 0">
+      <li *ngFor="let message of messages" [class.unread]="!message.read">
+        <label class="select">
+          <input
+            type="checkbox"
+            [checked]="message.selected"
+            (change)="toggleSelect(message)"
+            aria-label="Select message"
+            i18n-aria-label="@@inboxSelectMessage" />
+        </label>
+        <button type="button" class="message" (click)="openMessage(message)">
+          <div class="message__top">
+            <span class="sender">{{ message.sender }}</span>
+            <span class="date">{{ message.receivedAt }}</span>
+          </div>
+          <div class="message__subject">{{ message.subject }}</div>
+          <div class="message__preview">{{ message.preview }}</div>
+        </button>
+        <div class="message__actions">
+          <button type="button" *ngIf="!message.read" (click)="markAsRead(message)" i18n="@@inboxMarkRead">
+            Mark as read
+          </button>
+          <button type="button" *ngIf="message.read" (click)="markAsUnread(message)" i18n="@@inboxMarkUnread">
+            Mark as unread
+          </button>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>

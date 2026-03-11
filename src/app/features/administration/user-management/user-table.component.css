@@ -1,0 +1,74 @@
+:host {
+  display: block;
+}
+
+.table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.user-table {
+  min-width: 920px;
+  width: 100%;
+}
+
+.primary {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.status {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+}
+
+.status--active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status--inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.empty-state {
+  color: #64748b;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.table-overlay {
+  align-items: center;
+  backdrop-filter: blur(3px);
+  background: rgba(255, 255, 255, 0.7);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.muted {
+  background: #f1f5f9;
+  color: #64748b;
+}

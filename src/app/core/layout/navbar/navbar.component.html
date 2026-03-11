@@ -1,0 +1,22 @@
+@if (isAuthenticated()) {
+<nav class="navbar" aria-label="Primary navigation">
+  <button type="button" class="logo" (click)="navigateToDashboard()">RemoteFlow</button>
+  <div class="links">
+    <button type="button" class="link" (click)="navigateToDashboard()">Dashboard</button>
+    @if (isAdmin()) {
+      <button type="button" class="link" routerLink="/admin/users" routerLinkActive="link--active">Admin</button>
+    }
+    @if (isEmployee()) {
+      <button type="button" class="link" routerLink="/employee/requests" routerLinkActive="link--active">Requests</button>
+    }
+    @if (isManager()) {
+      <button type="button" class="link" routerLink="/manager/requests" routerLinkActive="link--active">Manager Requests</button>
+    }
+    @if (isHr()) {
+      <button type="button" class="link" routerLink="/hr/requests" routerLinkActive="link--active">HR Requests</button>
+    }
+    <button type="button" class="link" (click)="navigateToProfile()">Profile</button>
+    <button type="button" class="logout" (click)="logout()">Logout</button>
+  </div>
+</nav>
+}

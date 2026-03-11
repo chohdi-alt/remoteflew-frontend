@@ -1,0 +1,217 @@
+:host {
+  display: block;
+}
+
+.request-shell {
+  display: flex;
+  justify-content: center;
+}
+
+.request-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  width: min(100%, 760px);
+}
+
+.card-header {
+  align-items: flex-start;
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 58%, #edf4ff 100%);
+  border-bottom: 1px solid #e5edf7;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1.5rem 1.5rem 1.25rem;
+}
+
+.eyebrow {
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.45rem;
+  text-transform: uppercase;
+}
+
+.card-header h2 {
+  color: #0f172a;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  margin: 0;
+}
+
+.header-copy {
+  color: #475569;
+  margin: 0.55rem 0 0;
+  max-width: 48ch;
+}
+
+.account-chip {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid #dbe7f5;
+  border-radius: 18px;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 180px;
+  padding: 0.8rem 1rem;
+}
+
+.chip-label {
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.request-form {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.reason-field {
+  width: 100%;
+}
+
+.date-field {
+  width: 100%;
+}
+
+.quota-banner {
+  background: linear-gradient(180deg, #f8fbff 0%, #f0f7ff 100%);
+  border-bottom: 1px solid #dbeafe;
+  color: #0f172a;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.9rem 1.5rem;
+}
+
+.quota-banner p {
+  margin: 0;
+}
+
+.quota-banner small {
+  color: #475569;
+}
+
+.upload-panel {
+  background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+  border: 1px dashed #bfdbfe;
+  border-radius: 20px;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.upload-copy h3 {
+  color: #0f172a;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.upload-copy p {
+  color: #64748b;
+  margin: 0.35rem 0 0;
+}
+
+.file-input {
+  background: #ffffff;
+  border: 1px solid #d6deea;
+  border-radius: 14px;
+  color: #334155;
+  padding: 0.8rem 0.9rem;
+  width: 100%;
+}
+
+.file-input::file-selector-button {
+  background: #e8f0ff;
+  border: 0;
+  border-radius: 10px;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-weight: 600;
+  margin-right: 0.9rem;
+  padding: 0.65rem 0.95rem;
+}
+
+.upload-meta {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.75rem 0.9rem;
+}
+
+.meta-label {
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.form-error {
+  color: #b91c1c;
+  font-size: 0.88rem;
+  margin: -0.35rem 0 0;
+}
+
+.quota-warning {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  color: #92400e;
+  font-size: 0.9rem;
+  margin: -0.25rem 0 0;
+  padding: 0.65rem 0.85rem;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}
+
+@media (max-width: 720px) {
+  .card-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .account-chip {
+    min-width: 0;
+  }
+
+  .quota-banner {
+    padding: 0.9rem 1rem;
+  }
+
+  .action-row {
+    justify-content: stretch;
+  }
+
+  .action-row button {
+    flex: 1 1 180px;
+  }
+}
+
+:host ::ng-deep .rf-date-today .mat-calendar-body-cell-content {
+  border: 2px solid #2563eb;
+}
+
+:host ::ng-deep .rf-date-selected .mat-calendar-body-cell-content,
+:host ::ng-deep .rf-date-range-start .mat-calendar-body-cell-content,
+:host ::ng-deep .rf-date-range-end .mat-calendar-body-cell-content {
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+
+:host ::ng-deep .mat-calendar-body-in-range .mat-calendar-body-cell-content {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+}
+
+:host ::ng-deep .mat-calendar-body-in-preview .mat-calendar-body-cell-content {
+  background-color: rgba(59, 130, 246, 0.18);
+}
