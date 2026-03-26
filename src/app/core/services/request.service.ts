@@ -34,6 +34,12 @@ export class RequestService {
     return this.http.get<AuditHistoryDTO[]>(`${this.teleworkBasePath}/${requestId}/history`);
   }
 
+  viewJustificatifFile(requestId: number): Observable<Blob> {
+    return this.http.get(`${this.teleworkBasePath}/${requestId}/justificatif/view`, {
+      responseType: 'blob'
+    });
+  }
+
   approveManagerRequest(requestId: number, taskKey: string, body: RequestDecisionRequest): Observable<void> {
     return this.http.post<void>(
       `${this.teleworkBasePath}/${requestId}/manager/approve`,

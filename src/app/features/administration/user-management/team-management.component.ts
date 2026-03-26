@@ -35,6 +35,8 @@ interface TeamViewModel {
   membersCount: number;
 }
 
+import { AdminTabsComponent } from './admin-tabs.component';
+
 @Component({
   selector: 'app-team-management',
   standalone: true,
@@ -48,7 +50,8 @@ interface TeamViewModel {
     MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule,
-    DashboardLayoutComponent
+    DashboardLayoutComponent,
+    AdminTabsComponent
   ],
   templateUrl: './team-management.component.html',
   styleUrl: './team-management.component.css',

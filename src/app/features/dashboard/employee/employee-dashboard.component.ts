@@ -50,7 +50,7 @@ export class EmployeeRoleDashboardComponent {
 
   readonly fromControl = new FormControl<string>('', { nonNullable: true });
   readonly toControl = new FormControl<string>('', { nonNullable: true });
-  readonly recentColumns: string[] = ['requestId', 'startDate', 'endDate', 'status', 'specialCase'];
+  readonly recentColumns: string[] = ['requestId', 'startDate', 'endDate', 'status', 'specialCase', 'managerComment', 'hrComment'];
 
   private readonly filterState$: Observable<DashboardFilterState> = combineLatest([
     this.fromControl.valueChanges.pipe(startWith(this.fromControl.value)),

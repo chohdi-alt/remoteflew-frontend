@@ -1,6 +1,7 @@
 <app-dashboard-layout
   title="User Management"
   subtitle="Manage Keycloak-synchronized users, roles, and activation status.">
+  <app-admin-tabs></app-admin-tabs>
   @if (roles$ | async; as roles) {
     <section class="toolbar">
       <mat-form-field appearance="outline" class="search-field">

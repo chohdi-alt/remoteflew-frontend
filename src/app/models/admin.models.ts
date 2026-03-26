@@ -55,7 +55,7 @@ export interface CreateUserRequest {
   email?: string | null;
   firstName?: string | null;
   lastName?: string | null;
-  roles?: string[];
+  roles: string[];
 }
 
 export interface PageResponse<T> {

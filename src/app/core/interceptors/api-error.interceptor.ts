@@ -27,6 +27,15 @@ function isLoginEndpoint(url: string): boolean {
   }
 }
 
+function isChangePasswordEndpoint(url: string): boolean {
+  try {
+    const pathname = new URL(url, 'http://localhost').pathname;
+    return pathname === '/api/auth/change-password';
+  } catch {
+    return url.endsWith('/api/auth/change-password');
+  }
+}
+
 function isRefreshEndpoint(url: string): boolean {
   try {
     const pathname = new URL(url, 'http://localhost').pathname;
@@ -87,9 +96,13 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
       const apiError = toApiErrorPayload(error);
 
       if (error.status === 401) {
-        if (isLoginEndpoint(req.url)) {
-          toastr.error(apiError.message || 'Invalid username or password.', 'Authentication failed');
-          void router.navigate(['/login']);
+        if (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url)) {
+          return throwError(() => error);
+        }
+
+        // Do not trigger refresh/logout flows when the request was sent without a bearer token.
+        if (!req.headers.has('Authorization')) {
+          toastr.error(apiError.message || 'Authentication token is missing for this request.', 'Authentication required');
           return throwError(() => error);
         }
 
@@ -134,6 +147,19 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(() => handleSessionExpiry(error, 'Your session has expired. Please log in again.'))
         );
+      }
+
+      if (error.status === 403 && (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url))) {
+        const payload =
+          typeof error.error === 'object' && error.error !== null
+            ? (error.error as { error?: string })
+            : null;
+
+        if (payload?.error === 'PASSWORD_UPDATE_REQUIRED') {
+          return throwError(() => error);
+        }
+
+        return throwError(() => error);
       }
 
       if (error.status === 403) {

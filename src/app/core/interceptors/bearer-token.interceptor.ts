@@ -15,10 +15,14 @@ function isApiRequest(url: string): boolean {
 function isPublicAuthEndpoint(url: string): boolean {
   try {
     const pathname = new URL(url, 'http://localhost').pathname;
-    return pathname === '/api/auth/login' || pathname === '/api/auth/refresh';
+    return pathname === '/api/auth/login' || pathname === '/api/auth/refresh' || pathname === '/api/auth/change-password';
   } catch {
     const path = url.split(/[?#]/)[0];
-    return path.endsWith('/api/auth/login') || path.endsWith('/api/auth/refresh');
+    return (
+      path.endsWith('/api/auth/login') ||
+      path.endsWith('/api/auth/refresh') ||
+      path.endsWith('/api/auth/change-password')
+    );
   }
 }
 
@@ -43,7 +47,20 @@ export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
         })
       );
     }),
-    catchError(() => next(req))
+    catchError(() => {
+      const fallbackToken = auth.token;
+      if (!fallbackToken) {
+        return next(req);
+      }
+
+      return next(
+        req.clone({
+          setHeaders: {
+            Authorization: `Bearer ${fallbackToken}`
+          }
+        })
+      );
+    })
   );
 };
 

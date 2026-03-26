@@ -3,7 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export interface CreateTeleworkDTO {
-  employeeId: string;
   startDate: string;
   endDate: string;
   reason?: string;
@@ -38,8 +37,12 @@ export class TeleworkService {
     return this.http.post('/api/telework', formData);
   }
 
-  getWeeklyQuota(): Observable<TeleworkQuotaResponse> {
-    return this.http.get<TeleworkQuotaResponse>('/api/telework/quota');
+  getWeeklyQuota(date?: string): Observable<TeleworkQuotaResponse> {
+    let url = '/api/telework/quota';
+    if (date) {
+      url += `?date=${date}`;
+    }
+    return this.http.get<TeleworkQuotaResponse>(url);
   }
 
   getCurrentQuota(): Observable<TeleworkQuotaResponse> {

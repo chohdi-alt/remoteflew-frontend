@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ToastrService } from 'ngx-toastr';
-import { finalize } from 'rxjs';
+import { distinctUntilChanged, finalize } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { DashboardLayoutComponent } from '../../dashboard/shared/dashboard-layout.component';
 import { CreateTeleworkDTO, TeleworkQuotaResponse, TeleworkService } from '../services/telework.service';
@@ -76,10 +76,21 @@ export class EmployeeRequestComponent implements OnInit {
   ngOnInit(): void {
     this.loadQuota();
     this.requestForm.controls.startDate.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        distinctUntilChanged((a, b) => a?.getTime() === b?.getTime())
+      )
       .subscribe((startDate) => {
-        if (this.isSingleDateMode) {
-          this.requestForm.controls.endDate.setValue(startDate, { emitEvent: false });
+        if (startDate) {
+          const formatted = this.formatDate(this.stripTime(startDate));
+          this.loadQuota(formatted);
+        }
+
+        if (this.isSingleDateMode && startDate) {
+          const currentEnd = this.requestForm.controls.endDate.value;
+          if (!currentEnd || currentEnd.getTime() !== startDate.getTime()) {
+            this.requestForm.controls.endDate.setValue(startDate, { emitEvent: false });
+          }
         }
       });
   }
@@ -177,12 +188,6 @@ export class EmployeeRequestComponent implements OnInit {
       return;
     }
 
-    const employeeId = this.authService.username;
-    if (!employeeId) {
-      this.toastr.error('Unable to resolve the current employee account.', 'Submission failed');
-      return;
-    }
-
     const startDate = this.requestForm.controls.startDate.value;
     const endDate = this.isSingleDateMode
       ? this.requestForm.controls.startDate.value
@@ -210,7 +215,6 @@ export class EmployeeRequestComponent implements OnInit {
 
     const trimmedReason = this.requestForm.controls.reason.value.trim();
     const dto: CreateTeleworkDTO = {
-      employeeId,
       startDate: this.formatDate(start),
       endDate: this.formatDate(end),
       reason: trimmedReason || undefined
@@ -247,10 +251,10 @@ export class EmployeeRequestComponent implements OnInit {
     }
   }
 
-  private loadQuota(): void {
+  private loadQuota(date?: string): void {
     this.isLoadingQuota = true;
     this.teleworkService
-      .getWeeklyQuota()
+      .getWeeklyQuota(date)
       .pipe(finalize(() => (this.isLoadingQuota = false)))
       .subscribe({
         next: (quota) => {
@@ -270,10 +274,15 @@ export class EmployeeRequestComponent implements OnInit {
   }
 
   private applyQuotaMode(): void {
+    const startDateControl = this.requestForm.controls.startDate;
     const endDateControl = this.requestForm.controls.endDate;
+
     if (this.isSingleDateMode) {
       endDateControl.clearValidators();
-      endDateControl.setValue(this.requestForm.controls.startDate.value, { emitEvent: false });
+      const startVal = startDateControl.value;
+      if (startVal && (!endDateControl.value || endDateControl.value.getTime() !== startVal.getTime())) {
+        endDateControl.setValue(startVal, { emitEvent: false });
+      }
     } else {
       endDateControl.setValidators(Validators.required);
     }

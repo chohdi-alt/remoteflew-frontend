@@ -60,3 +60,19 @@ export interface ApiErrorPayload {
   message: string;
   path: string;
 }
+
+export interface PasswordUpdateRequiredResponse {
+  error: 'PASSWORD_UPDATE_REQUIRED';
+  username: string;
+}
+
+export interface ChangePasswordRequestPayload {
+  username: string;
+  temporaryPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  username: string;
+}

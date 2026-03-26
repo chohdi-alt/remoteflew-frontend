@@ -4,7 +4,8 @@
   <div class="links">
     <button type="button" class="link" (click)="navigateToDashboard()">Dashboard</button>
     @if (isAdmin()) {
-      <button type="button" class="link" routerLink="/admin/users" routerLinkActive="link--active">Admin</button>
+      <button type="button" class="link" routerLink="/admin/users" routerLinkActive="link--active">Users</button>
+      <button type="button" class="link" routerLink="/admin/teams" routerLinkActive="link--active">Teams</button>
     }
     @if (isEmployee()) {
       <button type="button" class="link" routerLink="/employee/requests" routerLinkActive="link--active">Requests</button>

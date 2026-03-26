@@ -22,8 +22,8 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline">
-    <mat-label>Roles</mat-label>
-    <mat-select formControlName="roles" multiple>
+    <mat-label>Role</mat-label>
+    <mat-select formControlName="role" required>
       @for (role of data.availableRoles; track role) {
         <mat-option [value]="role">{{ role }}</mat-option>
       }

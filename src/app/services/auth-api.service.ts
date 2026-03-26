@@ -1,7 +1,12 @@
 ﻿import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthTokenResponse, LoginRequestPayload } from '../models/auth.models';
+import {
+  AuthTokenResponse,
+  ChangePasswordRequestPayload,
+  ChangePasswordResponse,
+  LoginRequestPayload
+} from '../models/auth.models';
 
 export interface AuthMeResponse {
   userId: string;
@@ -24,6 +29,10 @@ export class AuthApiService {
 
   refresh(refreshToken: string): Observable<AuthTokenResponse> {
     return this.http.post<AuthTokenResponse>(`${this.basePath}/refresh`, { refreshToken });
+  }
+
+  changePassword(payload: ChangePasswordRequestPayload): Observable<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>(`${this.basePath}/change-password`, payload);
   }
 
   getCurrentUser(): Observable<AuthMeResponse> {

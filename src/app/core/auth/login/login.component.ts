@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AppRole } from '../../../models/auth.models';
+import { AppRole, PasswordUpdateRequiredResponse } from '../../../models/auth.models';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -15,6 +15,8 @@ import { AuthService } from '../auth.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
+  private static readonly PASSWORD_UPDATE_USERNAME_KEY = 'remoteflow.password_update.username';
+
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -49,14 +51,34 @@ export class LoginComponent implements OnInit {
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: () => {
+          this.clearPasswordUpdateUsername();
           this.redirectToDashboard(this.auth.getPrimaryRole());
         },
         error: (error: unknown) => {
           this.auth.clearSession();
-          if (error instanceof HttpErrorResponse && error.status === 401) {
-            this.errorMessage = 'Invalid username or password.';
-            return;
+          if (error instanceof HttpErrorResponse) {
+            const payload =
+              typeof error.error === 'object' && error.error !== null
+                ? (error.error as Partial<PasswordUpdateRequiredResponse>)
+                : null;
+
+            if (
+              error.status === 403 &&
+              payload?.error === 'PASSWORD_UPDATE_REQUIRED' &&
+              typeof payload.username === 'string' &&
+              payload.username.length > 0
+            ) {
+              this.storePasswordUpdateUsername(payload.username);
+              void this.router.navigateByUrl('/change-password');
+              return;
+            }
+
+            if (error.status === 401) {
+              this.errorMessage = 'Invalid username or password.';
+              return;
+            }
           }
+
           this.errorMessage = 'Unable to log in right now. Please try again.';
         }
       });
@@ -76,6 +98,20 @@ export class LoginComponent implements OnInit {
 
   private hasStoredToken(): boolean {
     return typeof globalThis.localStorage !== 'undefined' && !!localStorage.getItem('access_token');
+  }
+
+  private storePasswordUpdateUsername(username: string): void {
+    if (typeof globalThis.sessionStorage === 'undefined') {
+      return;
+    }
+    globalThis.sessionStorage.setItem(LoginComponent.PASSWORD_UPDATE_USERNAME_KEY, username);
+  }
+
+  private clearPasswordUpdateUsername(): void {
+    if (typeof globalThis.sessionStorage === 'undefined') {
+      return;
+    }
+    globalThis.sessionStorage.removeItem(LoginComponent.PASSWORD_UPDATE_USERNAME_KEY);
   }
 }
 

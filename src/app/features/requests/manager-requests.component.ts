@@ -204,7 +204,10 @@ export class ManagerRequestsComponent {
       employeeName: task.employeeName,
       startDate: task.startDate,
       endDate: task.endDate,
-      reason: null,
+      reason: task.justificationReason || null,
+      justificationReason: task.justificationReason || null,
+      justificatifFileId: task.justificatifFileId || null,
+      justificatifDownloadUrl: task.justificatifDownloadUrl || null,
       status: task.status,
       createdAt: task.createdAt,
       taskKey: task.taskKey

@@ -16,7 +16,7 @@ export interface UserCreateFormResult {
   email: string | null;
   firstName: string | null;
   lastName: string | null;
-  roles: string[];
+  role: string;
 }
 
 @Component({
@@ -41,7 +41,7 @@ export class UserCreateFormComponent {
     email: FormControl<string | null>;
     firstName: FormControl<string | null>;
     lastName: FormControl<string | null>;
-    roles: FormControl<string[]>;
+    role: FormControl<string>;
   }>;
 
   constructor(
@@ -49,12 +49,13 @@ export class UserCreateFormComponent {
     private readonly dialogRef: MatDialogRef<UserCreateFormComponent, UserCreateFormResult>,
     @Inject(MAT_DIALOG_DATA) public readonly data: UserCreateFormData
   ) {
+    const defaultRole = this.data.availableRoles[0] ?? 'EMPLOYEE';
     this.form = this.fb.group({
       username: this.fb.nonNullable.control('', [Validators.required, Validators.pattern(/\S+/)]),
       email: this.fb.control<string | null>(null, Validators.email),
       firstName: this.fb.control<string | null>(null),
       lastName: this.fb.control<string | null>(null),
-      roles: this.fb.nonNullable.control<string[]>([])
+      role: this.fb.nonNullable.control(defaultRole, Validators.required)
     });
   }
 
@@ -70,7 +71,7 @@ export class UserCreateFormComponent {
       email: this.normalizeOptional(raw.email),
       firstName: this.normalizeOptional(raw.firstName),
       lastName: this.normalizeOptional(raw.lastName),
-      roles: raw.roles ?? []
+      role: this.normalizeRequired(raw.role)
     });
   }
 

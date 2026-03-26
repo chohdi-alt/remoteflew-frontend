@@ -22,11 +22,12 @@ import {
   forkJoin
 } from 'rxjs';
 import { DashboardLayoutComponent } from '../../dashboard/shared/dashboard-layout.component';
-import { AdminUserDTO, PageResponse } from '../../../models/admin.models';
+import { AdminUserDTO, CreateUserRequest, PageResponse } from '../../../models/admin.models';
 import { RoleService } from '../../../core/services/role.service';
 import { UserService } from '../../../core/services/user.service';
 import { UserCreateFormComponent, UserCreateFormResult } from './user-create-form.component';
 import { UserFormComponent, UserFormResult } from './user-form.component';
+import { AdminTabsComponent } from './admin-tabs.component';
 import { AdminUserViewModel, UserTableComponent } from './user-table.component';
 
 interface PageState {
@@ -64,7 +65,8 @@ const EMPTY_PAGE: PageResponse<AdminUserDTO> = {
     MatFormFieldModule,
     MatInputModule,
     DashboardLayoutComponent,
-    UserTableComponent
+    UserTableComponent,
+    AdminTabsComponent
   ],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.css',
@@ -92,9 +94,20 @@ export class UserManagementComponent {
     switchMap(([state]) => {
       this.loadingSubject.next(true);
       return this.userService.getUsers(state.pageIndex, state.pageSize).pipe(
-        catchError((error) => {
+        catchError((error: unknown) => {
           console.error(error);
-          this.toastr.error('Unable to load users from the admin endpoint.', 'User Management');
+          const status = typeof error === 'object' && error !== null && 'status' in error
+            ? Number((error as { status?: unknown }).status ?? 0)
+            : 0;
+
+          if (status === 403) {
+            this.toastr.error('Admin role is required to access this page.', 'User Management');
+          } else if (status === 401) {
+            this.toastr.error('Your session is not valid. Please sign in again.', 'User Management');
+          } else {
+            this.toastr.error('Unable to load users from the admin endpoint.', 'User Management');
+          }
+
           return of(EMPTY_PAGE);
         }),
         finalize(() => this.loadingSubject.next(false)),
@@ -159,8 +172,17 @@ export class UserManagementComponent {
       }
 
       this.loadingSubject.next(true);
+      const role = this.normalizeRoles([result.role])[0];
+      const payload: CreateUserRequest = {
+        username: result.username,
+        email: result.email,
+        firstName: result.firstName,
+        lastName: result.lastName,
+        roles: role ? [role] : []
+      };
+
       this.userService
-        .createUser(result)
+        .createUser(payload)
         .pipe(finalize(() => this.loadingSubject.next(false)))
         .subscribe({
           next: () => {

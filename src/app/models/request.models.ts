@@ -15,6 +15,11 @@ export interface PendingValidationTaskDTO {
   endDate: string | null;
   status: string;
   taskKey: string;
+  justificationReason?: string | null;
+  justificatifFileId?: string | null;
+  justificatifDownloadUrl?: string | null;
+  managerComment?: string | null;
+  hrComment?: string | null;
 }
 
 export interface TeleworkStatusDTO {
@@ -24,6 +29,11 @@ export interface TeleworkStatusDTO {
   status: string;
   decisionComment: string | null;
   specialCase: boolean;
+  justificationReason?: string | null;
+  justificatifFileId?: string | null;
+  justificatifDownloadUrl?: string | null;
+  managerComment?: string | null;
+  hrComment?: string | null;
 }
 
 export interface AuditHistoryDTO {

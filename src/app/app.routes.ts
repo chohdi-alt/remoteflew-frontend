@@ -9,6 +9,11 @@ export const routes: Routes = [
     loadComponent: () => import('./core/auth/login/login.component').then((m) => m.LoginComponent)
   },
   {
+    path: 'change-password',
+    loadComponent: () =>
+      import('./core/auth/change-password/change-password.component').then((m) => m.ChangePasswordComponent)
+  },
+  {
     path: 'employee',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['EMPLOYEE'] },
