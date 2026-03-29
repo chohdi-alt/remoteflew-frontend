@@ -3,8 +3,6 @@ export interface RequestDecisionRequest {
 }
 
 export interface ApprovalDecisionRequest {
-  requestId?: number | null;
-  managerId?: string | null;
   comment?: string | null;
 }
 

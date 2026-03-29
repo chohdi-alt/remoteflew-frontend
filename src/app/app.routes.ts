@@ -1,4 +1,4 @@
-﻿import { Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/Auth.guard';
 import { RoleGuard } from './core/guards/Role.guard';
 import { AccessDeniedComponent } from './core/layout/access-denied/access-denied.component';
@@ -101,6 +101,13 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () =>
           import('./features/dashboard/admin/admin-dashboard.component').then((m) => m.AdminDashboardComponent)
+      },
+      {
+        path: 'archives',
+        canActivate: [AuthGuard, RoleGuard],
+        data: { roles: ['ADMIN'] },
+        loadComponent: () =>
+          import('./features/admin/pages/archives/archives.component').then((m) => m.ArchivesComponent)
       }
     ]
   },

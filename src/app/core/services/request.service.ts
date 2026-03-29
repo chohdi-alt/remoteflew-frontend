@@ -89,7 +89,6 @@ export class RequestService {
   private toApprovalPayload(requestId: number, body: RequestDecisionRequest): ApprovalDecisionRequest {
     const comment = body.comment == null ? null : body.comment.trim() || null;
     return {
-      requestId,
       comment
     };
   }

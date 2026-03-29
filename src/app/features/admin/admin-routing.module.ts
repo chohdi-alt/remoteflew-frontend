@@ -1,4 +1,4 @@
-﻿import { NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from '../../core/guards/Auth.guard';
 import { RoleGuard } from '../../core/guards/Role.guard';
@@ -29,6 +29,12 @@ const routes: Routes = [
   {
     path: 'audit-logs',
     component: AuditLogsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  {
+    path: 'archives',
+    loadComponent: () => import('./pages/archives/archives.component').then(m => m.ArchivesComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN'] }
   }
