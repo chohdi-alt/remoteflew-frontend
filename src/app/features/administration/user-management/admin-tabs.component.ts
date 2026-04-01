@@ -10,6 +10,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     <div class="admin-tabs">
       <a routerLink="/admin/users" routerLinkActive="active" class="tab-link">Users</a>
       <a routerLink="/admin/teams" routerLinkActive="active" class="tab-link">Teams</a>
+      <a routerLink="/admin/smtp" routerLinkActive="active" class="tab-link">SMTP</a>
     </div>
   `,
   styles: [`

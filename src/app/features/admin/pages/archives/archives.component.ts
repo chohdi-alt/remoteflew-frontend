@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { AdminTabsComponent } from '../../../administration/user-management/admin-tabs.component';
 
 export interface ArchiveSummaryDTO {
   requestId: number;
@@ -24,9 +25,10 @@ export interface ArchiveSummaryDTO {
 @Component({
   selector: 'app-archives',
   standalone: true,
-  imports: [CommonModule, DatePipe],
+  imports: [CommonModule, DatePipe, AdminTabsComponent],
   template: `
     <div class="archives-page">
+      <app-admin-tabs></app-admin-tabs>
       <header class="page-header">
         <div class="header-content">
           <div class="header-icon">

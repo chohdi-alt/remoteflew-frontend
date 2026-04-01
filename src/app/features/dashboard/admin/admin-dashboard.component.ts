@@ -20,6 +20,7 @@ import { DashboardService } from '../dashboard.service';
 import { BaseChartComponent } from '../shared/base-chart.component';
 import { DashboardLayoutComponent } from '../shared/dashboard-layout.component';
 import { KpiCardComponent } from '../shared/kpi-card.component';
+import { AdminTabsComponent } from '../../administration/user-management/admin-tabs.component';
 
 interface AdminDashboardViewModel {
   raw: AdminDashboardDTO;
@@ -49,7 +50,8 @@ interface DashboardFilterState {
     MatInputModule,
     DashboardLayoutComponent,
     KpiCardComponent,
-    BaseChartComponent
+    BaseChartComponent,
+    AdminTabsComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css',

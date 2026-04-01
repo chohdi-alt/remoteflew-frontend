@@ -14,6 +14,11 @@ export const routes: Routes = [
       import('./core/auth/change-password/change-password.component').then((m) => m.ChangePasswordComponent)
   },
   {
+    path: 'activate',
+    loadComponent: () =>
+      import('./core/auth/activate-account/activate-account.component').then((m) => m.ActivateAccountComponent)
+  },
+  {
     path: 'employee',
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['EMPLOYEE'] },
@@ -95,6 +100,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/administration/user-management/team-management.component').then(
             (m) => m.TeamManagementComponent
+          )
+      },
+      {
+        path: 'smtp',
+        loadComponent: () =>
+          import('./features/administration/user-management/smtp-management.component').then(
+            (m) => m.SmtpManagementComponent
           )
       },
       {

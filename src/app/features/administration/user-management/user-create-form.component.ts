@@ -13,7 +13,7 @@ export interface UserCreateFormData {
 
 export interface UserCreateFormResult {
   username: string;
-  email: string | null;
+  email: string;
   firstName: string | null;
   lastName: string | null;
   role: string;
@@ -38,7 +38,7 @@ export interface UserCreateFormResult {
 export class UserCreateFormComponent {
   readonly form: FormGroup<{
     username: FormControl<string>;
-    email: FormControl<string | null>;
+    email: FormControl<string>;
     firstName: FormControl<string | null>;
     lastName: FormControl<string | null>;
     role: FormControl<string>;
@@ -52,7 +52,7 @@ export class UserCreateFormComponent {
     const defaultRole = this.data.availableRoles[0] ?? 'EMPLOYEE';
     this.form = this.fb.group({
       username: this.fb.nonNullable.control('', [Validators.required, Validators.pattern(/\S+/)]),
-      email: this.fb.control<string | null>(null, Validators.email),
+      email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
       firstName: this.fb.control<string | null>(null),
       lastName: this.fb.control<string | null>(null),
       role: this.fb.nonNullable.control(defaultRole, Validators.required)
@@ -68,7 +68,7 @@ export class UserCreateFormComponent {
     const raw = this.form.getRawValue();
     this.dialogRef.close({
       username: this.normalizeRequired(raw.username),
-      email: this.normalizeOptional(raw.email),
+      email: this.normalizeRequired(raw.email),
       firstName: this.normalizeOptional(raw.firstName),
       lastName: this.normalizeOptional(raw.lastName),
       role: this.normalizeRequired(raw.role)

@@ -52,10 +52,52 @@ export interface UpdateTeamMembersRequest {
 
 export interface CreateUserRequest {
   username: string;
-  email?: string | null;
+  email: string;
   firstName?: string | null;
   lastName?: string | null;
   roles: string[];
+}
+
+export interface SmtpConfigRequest {
+  name: string;
+  host: string;
+  port: number;
+  protocol?: string | null;
+  username?: string | null;
+  password?: string | null;
+  fromEmail?: string | null;
+  authEnabled: boolean;
+  starttlsEnabled: boolean;
+  sslEnabled: boolean;
+  connectionTimeoutMs?: number | null;
+  readTimeoutMs?: number | null;
+  writeTimeoutMs?: number | null;
+  active: boolean;
+}
+
+export interface SmtpConfigResponse {
+  id: number | null;
+  name: string;
+  host: string;
+  port: number;
+  protocol: string;
+  username: string | null;
+  hasPassword: boolean;
+  fromEmail: string | null;
+  authEnabled: boolean;
+  starttlsEnabled: boolean;
+  sslEnabled: boolean;
+  connectionTimeoutMs: number | null;
+  readTimeoutMs: number | null;
+  writeTimeoutMs: number | null;
+  active: boolean;
+  source: string;
+  updatedAt: string | null;
+}
+
+export interface SmtpConnectionTestResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface PageResponse<T> {

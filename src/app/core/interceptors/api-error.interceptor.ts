@@ -36,6 +36,15 @@ function isChangePasswordEndpoint(url: string): boolean {
   }
 }
 
+function isActivationEndpoint(url: string): boolean {
+  try {
+    const pathname = new URL(url, 'http://localhost').pathname;
+    return pathname === '/api/auth/activate';
+  } catch {
+    return url.endsWith('/api/auth/activate');
+  }
+}
+
 function isRefreshEndpoint(url: string): boolean {
   try {
     const pathname = new URL(url, 'http://localhost').pathname;
@@ -96,7 +105,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
       const apiError = toApiErrorPayload(error);
 
       if (error.status === 401) {
-        if (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url)) {
+        if (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url) || isActivationEndpoint(req.url)) {
           return throwError(() => error);
         }
 
@@ -149,7 +158,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
         );
       }
 
-      if (error.status === 403 && (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url))) {
+      if (error.status === 403 && (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url) || isActivationEndpoint(req.url))) {
         const payload =
           typeof error.error === 'object' && error.error !== null
             ? (error.error as { error?: string })

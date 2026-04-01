@@ -15,13 +15,14 @@ function isApiRequest(url: string): boolean {
 function isPublicAuthEndpoint(url: string): boolean {
   try {
     const pathname = new URL(url, 'http://localhost').pathname;
-    return pathname === '/api/auth/login' || pathname === '/api/auth/refresh' || pathname === '/api/auth/change-password';
+    return pathname === '/api/auth/login' || pathname === '/api/auth/refresh' || pathname === '/api/auth/change-password' || pathname === '/api/auth/activate';
   } catch {
     const path = url.split(/[?#]/)[0];
     return (
       path.endsWith('/api/auth/login') ||
       path.endsWith('/api/auth/refresh') ||
-      path.endsWith('/api/auth/change-password')
+      path.endsWith('/api/auth/change-password') ||
+      path.endsWith('/api/auth/activate')
     );
   }
 }

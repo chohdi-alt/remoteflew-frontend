@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Create User</h2>
+<h2 mat-dialog-title>Invite User</h2>
 
 <form class="dialog-body" [formGroup]="form">
   <mat-form-field appearance="outline">
@@ -8,7 +8,7 @@
 
   <mat-form-field appearance="outline">
     <mat-label>Email</mat-label>
-    <input matInput type="email" formControlName="email" />
+    <input matInput type="email" formControlName="email" required />
   </mat-form-field>
 
   <mat-form-field appearance="outline">
@@ -31,7 +31,9 @@
   </mat-form-field>
 </form>
 
+<p class="activation-hint">An activation email will be sent after creation.</p>
+
 <div class="dialog-actions">
   <button mat-button type="button" (click)="cancel()">Cancel</button>
-  <button mat-flat-button color="primary" type="button" (click)="submit()">Create</button>
+  <button mat-flat-button color="primary" type="button" (click)="submit()">Send Invitation</button>
 </div>

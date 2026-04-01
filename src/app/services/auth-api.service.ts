@@ -2,6 +2,8 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
+  ActivateAccountRequestPayload,
+  ActivateAccountResponse,
   AuthTokenResponse,
   ChangePasswordRequestPayload,
   ChangePasswordResponse,
@@ -33,6 +35,10 @@ export class AuthApiService {
 
   changePassword(payload: ChangePasswordRequestPayload): Observable<ChangePasswordResponse> {
     return this.http.post<ChangePasswordResponse>(`${this.basePath}/change-password`, payload);
+  }
+
+  activateAccount(payload: ActivateAccountRequestPayload): Observable<ActivateAccountResponse> {
+    return this.http.post<ActivateAccountResponse>(`${this.basePath}/activate`, payload);
   }
 
   getCurrentUser(): Observable<AuthMeResponse> {

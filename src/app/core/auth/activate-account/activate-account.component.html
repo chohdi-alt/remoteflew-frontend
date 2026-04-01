@@ -1,0 +1,47 @@
+<div class="activation-page">
+  <div class="activation-card">
+    <h1>Activate account</h1>
+
+    @if (success) {
+      <p class="success">
+        Account activated successfully
+        @if (successUsername) {
+          for <strong>{{ successUsername }}</strong>
+        }
+        .
+      </p>
+      <button type="button" (click)="goToLogin()">Go to login</button>
+    } @else {
+      <p class="subtitle">Create your password to activate your RemoteFlow account.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label>
+          <span>New password</span>
+          <input type="password" formControlName="newPassword" autocomplete="new-password" />
+        </label>
+
+        <label>
+          <span>Confirm password</span>
+          <input type="password" formControlName="confirmPassword" autocomplete="new-password" />
+        </label>
+
+        @if (hasPasswordMismatch) {
+          <p class="error">Passwords do not match.</p>
+        }
+
+        @if (errorMessage) {
+          <p class="error">{{ errorMessage }}</p>
+        }
+
+        <button type="submit" [disabled]="isSubmitting || !token">
+          {{ isSubmitting ? 'Activating...' : 'Activate account' }}
+        </button>
+      </form>
+
+      <p class="footer-link">
+        Already activated?
+        <a routerLink="/login">Sign in</a>
+      </p>
+    }
+  </div>
+</div>

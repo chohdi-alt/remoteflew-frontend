@@ -1,0 +1,120 @@
+<app-dashboard-layout title="SMTP Configuration" subtitle="Manage mail servers used for notifications and account activation.">
+  <app-admin-tabs></app-admin-tabs>
+
+  @if (effective) {
+    <div class="effective-banner">
+      Effective source: <strong>{{ effective.source }}</strong>
+      @if (effective.host) {
+        | Host: <strong>{{ effective.host }}:{{ effective.port }}</strong>
+      }
+    </div>
+  }
+
+  <form class="smtp-form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="grid">
+      <label>
+        <span>Name</span>
+        <input formControlName="name" />
+      </label>
+
+      <label>
+        <span>Host</span>
+        <input formControlName="host" />
+      </label>
+
+      <label>
+        <span>Port</span>
+        <input type="number" formControlName="port" />
+      </label>
+
+      <label>
+        <span>Protocol</span>
+        <input formControlName="protocol" />
+      </label>
+
+      <label>
+        <span>Username</span>
+        <input formControlName="username" />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input type="password" formControlName="password" placeholder="Leave blank to keep current value on update" />
+      </label>
+
+      <label>
+        <span>From email</span>
+        <input formControlName="fromEmail" />
+      </label>
+
+      <label>
+        <span>Connection timeout (ms)</span>
+        <input type="number" formControlName="connectionTimeoutMs" />
+      </label>
+
+      <label>
+        <span>Read timeout (ms)</span>
+        <input type="number" formControlName="readTimeoutMs" />
+      </label>
+
+      <label>
+        <span>Write timeout (ms)</span>
+        <input type="number" formControlName="writeTimeoutMs" />
+      </label>
+    </div>
+
+    <div class="toggles">
+      <label><input type="checkbox" formControlName="authEnabled" /> SMTP auth</label>
+      <label><input type="checkbox" formControlName="starttlsEnabled" /> STARTTLS</label>
+      <label><input type="checkbox" formControlName="sslEnabled" /> SSL</label>
+      <label><input type="checkbox" formControlName="active" /> Set active</label>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Saving...' : (editingId === null ? 'Create configuration' : 'Update configuration') }}
+      </button>
+      <button type="button" class="secondary" (click)="testCurrentInput()">Test current form</button>
+      @if (editingId !== null) {
+        <button type="button" class="secondary" (click)="cancelEdit()">Cancel edit</button>
+      }
+    </div>
+
+    @if (testMessage) {
+      <p class="test-message">{{ testMessage }}</p>
+    }
+  </form>
+
+  <section class="list-section">
+    <h3>Saved configurations</h3>
+
+    @if (isLoading) {
+      <p>Loading SMTP configurations...</p>
+    } @else if (configs.length === 0) {
+      <p>No SMTP configuration saved yet.</p>
+    } @else {
+      <div class="config-list">
+        @for (config of configs; track config.id) {
+          <article class="config-card" [class.config-card--active]="config.active">
+            <header>
+              <strong>{{ config.name }}</strong>
+              <span class="source">{{ config.host }}:{{ config.port }} | {{ config.protocol }}</span>
+            </header>
+            <p>
+              Active: {{ config.active ? 'Yes' : 'No' }} |
+              Auth: {{ config.authEnabled ? 'On' : 'Off' }} |
+              TLS: {{ config.starttlsEnabled ? 'On' : 'Off' }} |
+              SSL: {{ config.sslEnabled ? 'On' : 'Off' }}
+            </p>
+            <div class="card-actions">
+              <button type="button" class="secondary" (click)="edit(config)">Edit</button>
+              <button type="button" class="secondary" (click)="activate(config)">Activate</button>
+              <button type="button" class="secondary" (click)="testStored(config)">Test</button>
+              <button type="button" class="danger" (click)="delete(config)">Delete</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</app-dashboard-layout>

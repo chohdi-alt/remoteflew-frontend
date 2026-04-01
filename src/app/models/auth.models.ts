@@ -76,3 +76,13 @@ export interface ChangePasswordResponse {
   success: boolean;
   username: string;
 }
+
+export interface ActivateAccountRequestPayload {
+  token: string;
+  newPassword: string;
+}
+
+export interface ActivateAccountResponse {
+  success: boolean;
+  username: string;
+}

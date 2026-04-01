@@ -184,9 +184,9 @@ export class UserManagementComponent {
       this.userService
         .createUser(payload)
         .pipe(finalize(() => this.loadingSubject.next(false)))
-        .subscribe({
+          .subscribe({
           next: () => {
-            this.toastr.success('User created successfully.', 'User Management');
+            this.toastr.success('User created. Activation email sent.', 'User Management');
             this.refresh();
           },
           error: (error) => {

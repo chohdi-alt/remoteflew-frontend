@@ -1,6 +1,6 @@
 <app-dashboard-layout
   title="User Management"
-  subtitle="Manage Keycloak-synchronized users, roles, and activation status.">
+  subtitle="Create users with activation-email onboarding, then manage roles and activation status.">
   <app-admin-tabs></app-admin-tabs>
   @if (roles$ | async; as roles) {
     <section class="toolbar">
@@ -11,7 +11,7 @@
 
       <div class="toolbar-actions">
         <button mat-stroked-button type="button" (click)="syncUsers()">Sync from Keycloak</button>
-        <button mat-stroked-button type="button" (click)="openCreateUser(roles)">Create User</button>
+        <button mat-stroked-button type="button" (click)="openCreateUser(roles)">Invite User</button>
         <button mat-flat-button color="primary" type="button" (click)="refresh()">Refresh</button>
       </div>
     </section>
