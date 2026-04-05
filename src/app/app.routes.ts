@@ -60,6 +60,11 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () =>
           import('./features/dashboard/manager/manager-dashboard.component').then((m) => m.ManagerDashboardComponent)
+      },
+      {
+        path: 'scoring',
+        loadComponent: () =>
+          import('./features/scoring/manager/scoring-list.component').then((m) => m.ScoringListComponent)
       }
     ]
   },
@@ -78,6 +83,11 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () => import('./features/dashboard/hr/hr-dashboard.component').then((m) => m.HrDashboardComponent)
+      },
+      {
+        path: 'scoring-audit',
+        loadComponent: () =>
+          import('./features/scoring/hr/scoring-audit.component').then((m) => m.ScoringAuditComponent)
       }
     ]
   },

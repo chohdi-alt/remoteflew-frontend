@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { AdminTabsComponent } from '../../../administration/user-management/admin-tabs.component';
+import { TeleworkScoreDTO } from '../../../../models/scoring.models';
 
 export interface ArchiveSummaryDTO {
   requestId: number;
@@ -20,6 +21,9 @@ export interface ArchiveSummaryDTO {
   justificationReason: string | null;
   justificatifFileId: string | null;
   archiveNodeId: string | null;
+  scoreId: number | null;
+  scoreStatus: string | null;
+  scoreValue: number | null;
 }
 
 @Component({
@@ -85,6 +89,7 @@ export interface ArchiveSummaryDTO {
                 <th>Manager Comment</th>
                 <th>HR Comment</th>
                 <th>Justificatif</th>
+                <th>Score</th>
                 <th>Archive</th>
               </tr>
             </thead>
@@ -149,6 +154,15 @@ export interface ArchiveSummaryDTO {
                     }
                   </td>
                   <td>
+                    @if (item.scoreId) {
+                      <button class="btn-view" (click)="viewScore(item.requestId)" title="View score details">
+                        Score {{ item.scoreValue == null ? 'N/A' : (item.scoreValue | number:'1.2-2') }}
+                      </button>
+                    } @else {
+                      <span class="normal-badge">N/A</span>
+                    }
+                  </td>
+                  <td>
                     @if (item.archiveNodeId) {
                       <button class="btn-view" (click)="viewArchive(item.requestId)" title="View PDF Archive">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -165,11 +179,53 @@ export interface ArchiveSummaryDTO {
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="10" class="empty-state">No archived requests found.</td>
+                  <td colspan="11" class="empty-state">No archived requests found.</td>
                 </tr>
               }
             </tbody>
           </table>
+        </div>
+      }
+
+      @if (selectedScore()) {
+        <div class="score-modal-backdrop" (click)="closeScoreDetail()">
+          <section class="score-modal" (click)="$event.stopPropagation()">
+            <header>
+              <h3>Score Details</h3>
+              <button type="button" class="btn-retry" (click)="closeScoreDetail()">Close</button>
+            </header>
+
+            <p>Request #{{ selectedScore()!.requestId }} | Status: {{ selectedScore()!.status }}</p>
+            <p>Total score: {{ selectedScore()!.totalScore == null ? 'N/A' : (selectedScore()!.totalScore | number:'1.2-2') }}</p>
+            <p>Manager: {{ selectedScore()!.managerExternalId || 'N/A' }}</p>
+            <p>Manager comment: {{ selectedScore()!.managerComment || 'N/A' }}</p>
+            <p>HR comment: {{ selectedScore()!.hrComment || 'N/A' }}</p>
+
+            <table class="archive-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                  <th>Weight</th>
+                  <th>Weighted</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (metric of selectedScore()!.metrics; track metric.metricCode) {
+                  <tr class="table-row">
+                    <td>{{ metric.metricCode }}</td>
+                    <td>{{ metric.metricValue | number:'1.2-2' }}</td>
+                    <td>{{ metric.metricWeight | number:'1.2-2' }}</td>
+                    <td>{{ metric.weightedScore | number:'1.2-2' }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="empty-state">No metric breakdown available.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </section>
         </div>
       }
     </div>
@@ -450,6 +506,44 @@ export interface ArchiveSummaryDTO {
       box-shadow: 0 4px 12px rgba(102,126,234,0.3);
     }
 
+    .score-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 16, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 30;
+    }
+
+    .score-modal {
+      width: min(900px, 100%);
+      max-height: 85vh;
+      overflow-y: auto;
+      background: #191f36;
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .score-modal header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .score-modal h3 {
+      margin: 0;
+    }
+
+    .score-modal p {
+      margin: 0.25rem 0;
+      color: rgba(224, 224, 240, 0.82);
+    }
+
     .empty-state {
       text-align: center;
       padding: 4rem 1rem;
@@ -460,6 +554,7 @@ export interface ArchiveSummaryDTO {
 })
 export class ArchivesComponent implements OnInit {
   archives = signal<ArchiveSummaryDTO[]>([]);
+  selectedScore = signal<TeleworkScoreDTO | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -519,5 +614,20 @@ export class ArchivesComponent implements OnInit {
         alert('Failed to open archive PDF. Please try again.');
       }
     });
+  }
+
+  viewScore(requestId: number): void {
+    this.http.get<TeleworkScoreDTO>(`/api/scoring/request/${requestId}`).subscribe({
+      next: (score) => {
+        this.selectedScore.set(score);
+      },
+      error: () => {
+        alert('Failed to load score details. Please try again.');
+      }
+    });
+  }
+
+  closeScoreDetail(): void {
+    this.selectedScore.set(null);
   }
 }

@@ -1,0 +1,101 @@
+<app-dashboard-layout title="HR Scoring Audit" subtitle="Review manager-submitted scorecards">
+  <section class="filters">
+    <form [formGroup]="filterForm" (ngSubmit)="search()">
+      <input type="text" placeholder="Team ID" formControlName="teamId" />
+      <input type="text" placeholder="Employee ID" formControlName="employeeId" />
+      <input type="text" placeholder="Manager external ID" formControlName="managerExternalId" />
+
+      <select formControlName="status">
+        <option value="">All statuses</option>
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ status }}</option>
+        }
+      </select>
+
+      <button type="submit" [disabled]="loadingList()">Search</button>
+    </form>
+  </section>
+
+  <section class="content">
+    <div class="table-card">
+      @if (loadingList()) {
+        <p class="state">Loading scorecards...</p>
+      } @else if (rows().length === 0) {
+        <p class="state">No scorecards found for selected filters.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Employee</th>
+              <th>Manager</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.scoreId) {
+              <tr [class.active]="selected()?.scoreId === row.scoreId">
+                <td>#{{ row.requestId }}</td>
+                <td>{{ row.employeeId }}</td>
+                <td>{{ row.managerExternalId || 'N/A' }}</td>
+                <td>{{ row.status }}</td>
+                <td>{{ row.totalScore == null ? 'N/A' : (row.totalScore | number:'1.2-2') }}</td>
+                <td>
+                  <button type="button" (click)="selectRow(row)">Details</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <div class="detail-card">
+      @if (loadingDetails()) {
+        <p class="state">Loading details...</p>
+      } @else if (!selected()) {
+        <p class="state">Select a scorecard to view metric breakdown.</p>
+      } @else {
+        <h3>Score #{{ selected()!.scoreId }} | Request #{{ selected()!.requestId }}</h3>
+        <p class="meta">Employee: {{ selected()!.employeeId }} | Manager: {{ selected()!.managerExternalId || 'N/A' }}</p>
+        <p class="meta">Status: {{ selected()!.status }} | Total: {{ selected()!.totalScore | number:'1.2-2' }}</p>
+        <p class="meta">Manager comment: {{ selected()!.managerComment || 'N/A' }}</p>
+
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+              <th>Weight</th>
+              <th>Weighted</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (metric of selected()!.metrics; track metric.metricCode) {
+              <tr>
+                <td>{{ metric.metricCode }}</td>
+                <td>{{ metric.metricValue | number:'1.2-2' }}</td>
+                <td>{{ metric.metricWeight | number:'1.2-2' }}</td>
+                <td>{{ metric.weightedScore | number:'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (selected()!.status === 'SCORED') {
+          <form [formGroup]="reviewForm" class="review-form" (ngSubmit)="reviewSelected()">
+            <label for="hr-comments">HR review comments</label>
+            <textarea id="hr-comments" rows="3" formControlName="comments"></textarea>
+            <button type="submit" [disabled]="reviewing()">
+              {{ reviewing() ? 'Reviewing...' : 'Mark as reviewed' }}
+            </button>
+          </form>
+        } @else {
+          <p class="meta">HR comment: {{ selected()!.hrComment || 'N/A' }}</p>
+        }
+      }
+    </div>
+  </section>
+</app-dashboard-layout>

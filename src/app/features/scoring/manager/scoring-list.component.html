@@ -1,0 +1,48 @@
+<app-dashboard-layout title="Manager Scoring" subtitle="Score requests after telework completion">
+  <section class="wrapper">
+    <header class="header-row">
+      <h2>Pending requests to score</h2>
+      <button type="button" (click)="loadPendingScores()" [disabled]="loading()">Refresh</button>
+    </header>
+
+    @if (loading()) {
+      <p class="state">Loading scoring requests...</p>
+    } @else if (pendingScores().length === 0) {
+      <p class="state">No scoring requests are pending for your teams.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Employee</th>
+              <th>Dates</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of pendingScores(); track row.scoreId) {
+              <tr [class.active]="selectedScore()?.scoreId === row.scoreId">
+                <td>#{{ row.requestId }}</td>
+                <td>{{ row.employeeId }}</td>
+                <td>{{ row.startDate | date:'dd/MM/yyyy' }} - {{ row.endDate | date:'dd/MM/yyyy' }}</td>
+                <td>{{ row.status }}</td>
+                <td>
+                  <button type="button" (click)="selectScore(row)">Score</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <app-scoring-form
+      [score]="selectedScore()"
+      [submitting]="submitting()"
+      (submitScore)="submitScore($event)"
+      (cancel)="clearSelection()">
+    </app-scoring-form>
+  </section>
+</app-dashboard-layout>

@@ -14,9 +14,11 @@
     }
     @if (isManager()) {
       <button type="button" class="link" routerLink="/manager/requests" routerLinkActive="link--active">Manager Requests</button>
+      <button type="button" class="link" routerLink="/manager/scoring" routerLinkActive="link--active">Manager Scoring</button>
     }
     @if (isHr()) {
       <button type="button" class="link" routerLink="/hr/requests" routerLinkActive="link--active">HR Requests</button>
+      <button type="button" class="link" routerLink="/hr/scoring-audit" routerLinkActive="link--active">Scoring Audit</button>
     }
     <button type="button" class="link" (click)="navigateToProfile()">Profile</button>
     <button type="button" class="logout" (click)="logout()">Logout</button>

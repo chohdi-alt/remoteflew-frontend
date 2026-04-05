@@ -1,0 +1,50 @@
+@if (score) {
+  <section class="panel">
+    <header class="panel-header">
+      <h3>Score Request #{{ score.requestId }}</h3>
+      <p>{{ score.employeeId }} | {{ score.startDate | date:'dd/MM/yyyy' }} - {{ score.endDate | date:'dd/MM/yyyy' }}</p>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
+      <label>
+        <span>Attendance</span>
+        <input type="number" min="0" max="100" formControlName="attendance" />
+      </label>
+
+      <label>
+        <span>Tasks</span>
+        <input type="number" min="0" max="100" formControlName="tasks" />
+      </label>
+
+      <label>
+        <span>Punctuality</span>
+        <input type="number" min="0" max="100" formControlName="punctuality" />
+      </label>
+
+      <label>
+        <span>Behavior</span>
+        <input type="number" min="0" max="100" formControlName="behavior" />
+      </label>
+
+      <label class="full-width">
+        <span>
+          Comments
+          @if (requiresJustification) {
+            <strong>(required when total score is below 60)</strong>
+          }
+        </span>
+        <textarea rows="4" formControlName="comments"></textarea>
+      </label>
+
+      <div class="preview full-width">
+        <span>Projected score:</span>
+        <strong>{{ previewTotal == null ? 'N/A' : (previewTotal | number:'1.2-2') }}</strong>
+      </div>
+
+      <div class="actions full-width">
+        <button type="button" class="ghost" (click)="cancel.emit()" [disabled]="submitting">Cancel</button>
+        <button type="submit" [disabled]="submitting">{{ submitting ? 'Submitting...' : 'Submit score' }}</button>
+      </div>
+    </form>
+  </section>
+}

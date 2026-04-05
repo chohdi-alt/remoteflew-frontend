@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
@@ -20,6 +20,7 @@ export class SmtpManagementComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly smtpService = inject(SmtpService);
   private readonly toastr = inject(ToastrService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
@@ -44,23 +45,49 @@ export class SmtpManagementComponent implements OnInit {
   isSubmitting = false;
   editingId: number | null = null;
   testMessage: string | null = null;
+  private loaded = false;
+  private loadInFlight = false;
 
   ngOnInit(): void {
-    this.refresh();
+    this.loadConfigs();
   }
 
-  refresh(): void {
+  loadConfigs(force = false): void {
+    console.count('[SMTP CALL]');
+    if (!force && this.loaded) {
+      return;
+    }
+    if (this.loadInFlight) {
+      return;
+    }
+
+    this.loaded = true;
+    this.loadInFlight = true;
     this.isLoading = true;
+    console.log('[SMTP] CALL START');
     this.smtpService
       .list()
-      .pipe(finalize(() => (this.isLoading = false)))
+      .pipe(
+        finalize(() => {
+          this.loadInFlight = false;
+          this.cdr.markForCheck();
+        })
+      )
       .subscribe({
         next: (configs) => {
-          this.configs = configs;
+          console.log('[SMTP] RESPONSE', configs);
+          this.configs = Array.isArray(configs) ? configs : [];
+          this.isLoading = false;
           this.loadEffective();
         },
-        error: () => {
+        error: (err) => {
+          console.error('[SMTP] ERROR', err);
+          this.loaded = false;
+          this.isLoading = false;
           this.toastr.error('Unable to load SMTP configurations.', 'SMTP');
+        },
+        complete: () => {
+          console.log('[SMTP] COMPLETE');
         }
       });
   }
@@ -83,7 +110,7 @@ export class SmtpManagementComponent implements OnInit {
         next: () => {
           this.toastr.success(this.editingId == null ? 'SMTP configuration created.' : 'SMTP configuration updated.', 'SMTP');
           this.resetForm();
-          this.refresh();
+          this.reloadConfigs();
         },
         error: () => {
           this.toastr.error('Failed to save SMTP configuration.', 'SMTP');
@@ -119,7 +146,7 @@ export class SmtpManagementComponent implements OnInit {
     this.smtpService.activate(config.id).subscribe({
       next: () => {
         this.toastr.success('SMTP configuration activated.', 'SMTP');
-        this.refresh();
+        this.reloadConfigs();
       },
       error: () => {
         this.toastr.error('Failed to activate SMTP configuration.', 'SMTP');
@@ -134,7 +161,7 @@ export class SmtpManagementComponent implements OnInit {
     this.smtpService.delete(config.id).subscribe({
       next: () => {
         this.toastr.success('SMTP configuration deleted.', 'SMTP');
-        this.refresh();
+        this.reloadConfigs();
       },
       error: () => {
         this.toastr.error('Failed to delete SMTP configuration.', 'SMTP');
@@ -186,13 +213,19 @@ export class SmtpManagementComponent implements OnInit {
     this.resetForm();
   }
 
+  private reloadConfigs(): void {
+    this.loadConfigs(true);
+  }
+
   private loadEffective(): void {
     this.smtpService.getEffective().subscribe({
       next: (effective) => {
         this.effective = effective;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.effective = null;
+        this.cdr.markForCheck();
       }
     });
   }

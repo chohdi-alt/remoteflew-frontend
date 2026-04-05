@@ -1,6 +1,6 @@
-﻿import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, from, switchMap } from 'rxjs';
+import { catchError, from, of, switchMap, tap, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 
 function isApiRequest(url: string): boolean {
@@ -28,36 +28,43 @@ function isPublicAuthEndpoint(url: string): boolean {
 }
 
 export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
+  console.log('[INTERCEPTOR] REQUEST', req.url);
+
   if (!isApiRequest(req.url) || isPublicAuthEndpoint(req.url)) {
-    return next(req);
+    console.log('[INTERCEPTOR] FORWARDING');
+    return next(req).pipe(
+      tap((res) => console.log('[INTERCEPTOR] RESPONSE', res)),
+      catchError((err) => {
+        console.error('[INTERCEPTOR] ERROR', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   const auth = inject(AuthService);
+  const forward = (requestToForward: typeof req) => {
+    console.log('[INTERCEPTOR] FORWARDING');
+    return next(requestToForward).pipe(
+      tap((res) => console.log('[INTERCEPTOR] RESPONSE', res)),
+      catchError((err) => {
+        console.error('[INTERCEPTOR] ERROR', err);
+        return throwError(() => err);
+      })
+    );
+  };
 
   return from(auth.getToken(30)).pipe(
+    // Token acquisition fallback only; downstream HTTP errors should propagate.
+    catchError(() => of(auth.token)),
     switchMap((token) => {
       if (!token) {
-        return next(req);
+        return forward(req);
       }
 
-      return next(
+      return forward(
         req.clone({
           setHeaders: {
             Authorization: `Bearer ${token}`
-          }
-        })
-      );
-    }),
-    catchError(() => {
-      const fallbackToken = auth.token;
-      if (!fallbackToken) {
-        return next(req);
-      }
-
-      return next(
-        req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${fallbackToken}`
           }
         })
       );

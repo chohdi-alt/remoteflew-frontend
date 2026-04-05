@@ -1,0 +1,118 @@
+.filters form {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.filters input,
+.filters select,
+.filters button {
+  border-radius: 8px;
+  border: 1px solid #cfd6e3;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+}
+
+.filters button {
+  border: none;
+  background: #b66a1d;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.content {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1rem;
+}
+
+.table-card,
+.detail-card {
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.6rem;
+  border-bottom: 1px solid #edf1f7;
+}
+
+thead th {
+  font-size: 0.8rem;
+  color: #5a6878;
+  text-transform: uppercase;
+}
+
+tbody tr.active {
+  background: #f4f9ff;
+}
+
+tbody button {
+  border: none;
+  border-radius: 8px;
+  background: #1f6fd8;
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+}
+
+.state {
+  margin: 0;
+  color: #526276;
+}
+
+.meta {
+  margin: 0.35rem 0;
+  color: #314255;
+  font-size: 0.92rem;
+}
+
+.metrics-table {
+  margin-top: 0.6rem;
+}
+
+.review-form {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.review-form textarea {
+  border: 1px solid #cfd6e3;
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+}
+
+.review-form button {
+  align-self: flex-end;
+  border: none;
+  border-radius: 8px;
+  background: #1d8f5a;
+  color: #fff;
+  padding: 0.5rem 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 1000px) {
+  .filters form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+  }
+}
