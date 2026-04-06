@@ -76,6 +76,39 @@ button:disabled {
   font-size: 0.88rem;
 }
 
+.password-rules {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.password-rules li {
+  font-size: 0.84rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.password-rules li::before {
+  content: '•';
+  line-height: 1;
+  font-size: 1.1rem;
+}
+
+.password-rules li.valid {
+  color: #166534;
+}
+
+.password-rules li.valid::before {
+  content: '✔';
+}
+
+.password-rules li.invalid {
+  color: #b91c1c;
+}
+
 .success {
   color: #166534;
   margin: 0 0 1rem;

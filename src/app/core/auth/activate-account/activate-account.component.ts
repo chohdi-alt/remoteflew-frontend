@@ -12,6 +12,13 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthApiService } from '../../../services/auth-api.service';
+import {
+  KEYCLOAK_PASSWORD_POLICY,
+  evaluatePasswordPolicy,
+  passwordPolicyValidator,
+  PasswordPolicy,
+  PasswordPolicyState
+} from '../password-policy.validator';
 
 const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const newPassword = control.get('newPassword')?.value;
@@ -35,9 +42,10 @@ export class ActivateAccountComponent implements OnInit {
   private readonly authApi = inject(AuthApiService);
   private readonly fb = inject(FormBuilder);
 
+  readonly passwordPolicy: PasswordPolicy = KEYCLOAK_PASSWORD_POLICY;
   readonly form = this.fb.nonNullable.group(
     {
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      newPassword: ['', [Validators.required, passwordPolicyValidator(KEYCLOAK_PASSWORD_POLICY)]],
       confirmPassword: ['', [Validators.required]]
     },
     { validators: passwordMatchValidator }
@@ -78,22 +86,7 @@ export class ActivateAccountComponent implements OnInit {
           this.successUsername = response.username ?? null;
         },
         error: (error: unknown) => {
-          if (error instanceof HttpErrorResponse) {
-            if (error.status === 401) {
-              this.errorMessage = 'Activation token is invalid or expired.';
-              return;
-            }
-            if (
-              typeof error.error === 'object' &&
-              error.error !== null &&
-              'message' in error.error &&
-              typeof (error.error as { message?: unknown }).message === 'string'
-            ) {
-              this.errorMessage = (error.error as { message: string }).message;
-              return;
-            }
-          }
-          this.errorMessage = 'Unable to activate your account right now. Please try again later.';
+          this.errorMessage = this.resolveActivationErrorMessage(error);
         }
       });
   }
@@ -104,5 +97,52 @@ export class ActivateAccountComponent implements OnInit {
 
   get hasPasswordMismatch(): boolean {
     return !!this.form.errors?.['passwordMismatch'] && this.form.touched;
+  }
+
+  get passwordPolicyState(): PasswordPolicyState {
+    return evaluatePasswordPolicy(this.form.controls.newPassword.value, this.passwordPolicy);
+  }
+
+  get showPasswordPolicyFeedback(): boolean {
+    const control = this.form.controls.newPassword;
+    return control.touched || control.dirty || this.isSubmitting;
+  }
+
+  private resolveActivationErrorMessage(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Unable to activate your account right now. Please try again later.';
+    }
+
+    const backendMessage = this.extractBackendErrorMessage(error);
+
+    if (error.status === 401) {
+      return backendMessage ?? 'Activation token is invalid or expired.';
+    }
+    if (error.status === 400 || error.status === 409) {
+      return backendMessage ?? 'Password does not satisfy security requirements.';
+    }
+    if (error.status === 502 || error.status === 503) {
+      return backendMessage ?? 'Authentication service is temporarily unavailable. Please retry.';
+    }
+    if (error.status >= 500) {
+      return backendMessage ?? 'Unable to activate your account right now. Please try again later.';
+    }
+
+    return backendMessage ?? 'Unable to activate your account right now. Please try again later.';
+  }
+
+  private extractBackendErrorMessage(error: HttpErrorResponse): string | null {
+    if (typeof error.error === 'string' && error.error.trim().length > 0) {
+      return error.error.trim();
+    }
+
+    if (error.error && typeof error.error === 'object') {
+      const payload = error.error as { message?: unknown };
+      if (typeof payload.message === 'string' && payload.message.trim().length > 0) {
+        return payload.message.trim();
+      }
+    }
+
+    return null;
   }
 }

@@ -20,6 +20,26 @@
           <input type="password" formControlName="newPassword" autocomplete="new-password" />
         </label>
 
+        @if (showPasswordPolicyFeedback) {
+          <ul class="password-rules">
+            <li [class.valid]="passwordPolicyState.minLength" [class.invalid]="!passwordPolicyState.minLength">
+              At least {{ passwordPolicy.minLength }} characters
+            </li>
+            <li [class.valid]="passwordPolicyState.uppercase" [class.invalid]="!passwordPolicyState.uppercase">
+              One uppercase letter
+            </li>
+            <li [class.valid]="passwordPolicyState.lowercase" [class.invalid]="!passwordPolicyState.lowercase">
+              One lowercase letter
+            </li>
+            <li [class.valid]="passwordPolicyState.number" [class.invalid]="!passwordPolicyState.number">
+              One number
+            </li>
+            <li [class.valid]="passwordPolicyState.specialCharacter" [class.invalid]="!passwordPolicyState.specialCharacter">
+              One special character
+            </li>
+          </ul>
+        }
+
         <label>
           <span>Confirm password</span>
           <input type="password" formControlName="confirmPassword" autocomplete="new-password" />
@@ -33,7 +53,7 @@
           <p class="error">{{ errorMessage }}</p>
         }
 
-        <button type="submit" [disabled]="isSubmitting || !token">
+        <button type="submit" [disabled]="isSubmitting || !token || form.invalid">
           {{ isSubmitting ? 'Activating...' : 'Activate account' }}
         </button>
       </form>

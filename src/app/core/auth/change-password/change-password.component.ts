@@ -13,6 +13,13 @@ import { Router } from '@angular/router';
 import { finalize, switchMap } from 'rxjs';
 import { AuthApiService } from '../../../services/auth-api.service';
 import { AuthService } from '../auth.service';
+import {
+  KEYCLOAK_PASSWORD_POLICY,
+  evaluatePasswordPolicy,
+  passwordPolicyValidator,
+  PasswordPolicy,
+  PasswordPolicyState
+} from '../password-policy.validator';
 
 const PASSWORD_UPDATE_USERNAME_KEY = 'remoteflow.password_update.username';
 
@@ -39,11 +46,12 @@ export class ChangePasswordComponent implements OnInit {
   private readonly authApi = inject(AuthApiService);
   private readonly auth = inject(AuthService);
 
+  readonly passwordPolicy: PasswordPolicy = KEYCLOAK_PASSWORD_POLICY;
   readonly form = this.fb.nonNullable.group(
     {
       username: ['', [Validators.required]],
       temporaryPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      newPassword: ['', [Validators.required, passwordPolicyValidator(KEYCLOAK_PASSWORD_POLICY)]],
       confirmPassword: ['', [Validators.required]]
     },
     { validators: passwordMatchValidator }
@@ -90,32 +98,22 @@ export class ChangePasswordComponent implements OnInit {
           void this.router.navigateByUrl(this.auth.getDashboardRouteForRole(this.auth.getPrimaryRole()));
         },
         error: (error: unknown) => {
-          if (error instanceof HttpErrorResponse) {
-            if (error.status === 401) {
-              this.errorMessage = 'Temporary password is invalid. Please check your credentials.';
-              return;
-            }
-
-            if (error.status === 400) {
-              const message =
-                typeof error.error === 'object' &&
-                error.error !== null &&
-                'message' in error.error &&
-                typeof (error.error as { message?: unknown }).message === 'string'
-                  ? (error.error as { message: string }).message
-                  : 'Unable to change password. Please verify the form values.';
-              this.errorMessage = message;
-              return;
-            }
-          }
-
-          this.errorMessage = 'Unable to change password right now. Please try again.';
+          this.errorMessage = this.resolveChangePasswordErrorMessage(error);
         }
       });
   }
 
   get hasPasswordMismatch(): boolean {
     return !!this.form.errors?.['passwordMismatch'] && this.form.touched;
+  }
+
+  get passwordPolicyState(): PasswordPolicyState {
+    return evaluatePasswordPolicy(this.form.controls.newPassword.value, this.passwordPolicy);
+  }
+
+  get showPasswordPolicyFeedback(): boolean {
+    const control = this.form.controls.newPassword;
+    return control.touched || control.dirty || this.isSubmitting;
   }
 
   private readStoredUsername(): string | null {
@@ -133,5 +131,43 @@ export class ChangePasswordComponent implements OnInit {
     }
 
     globalThis.sessionStorage.removeItem(PASSWORD_UPDATE_USERNAME_KEY);
+  }
+
+  private resolveChangePasswordErrorMessage(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Unable to change password right now. Please try again.';
+    }
+
+    const backendMessage = this.extractBackendErrorMessage(error);
+
+    if (error.status === 401) {
+      return backendMessage ?? 'Temporary password is invalid. Please check your credentials.';
+    }
+    if (error.status === 400 || error.status === 409) {
+      return backendMessage ?? 'Password does not satisfy security requirements.';
+    }
+    if (error.status === 502 || error.status === 503) {
+      return backendMessage ?? 'Authentication service is temporarily unavailable. Please retry.';
+    }
+    if (error.status >= 500) {
+      return backendMessage ?? 'Unable to change password right now. Please try again.';
+    }
+
+    return backendMessage ?? 'Unable to change password right now. Please try again.';
+  }
+
+  private extractBackendErrorMessage(error: HttpErrorResponse): string | null {
+    if (typeof error.error === 'string' && error.error.trim().length > 0) {
+      return error.error.trim();
+    }
+
+    if (error.error && typeof error.error === 'object') {
+      const payload = error.error as { message?: unknown };
+      if (typeof payload.message === 'string' && payload.message.trim().length > 0) {
+        return payload.message.trim();
+      }
+    }
+
+    return null;
   }
 }

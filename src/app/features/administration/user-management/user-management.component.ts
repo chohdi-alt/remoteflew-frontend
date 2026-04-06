@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -53,6 +54,57 @@ const EMPTY_PAGE: PageResponse<AdminUserDTO> = {
   first: true,
   last: true
 };
+
+function extractBackendErrorMessage(error: HttpErrorResponse): string | null {
+  const payload = error.error;
+  if (typeof payload === 'string' && payload.trim().length > 0) {
+    return payload.trim();
+  }
+
+  if (payload && typeof payload === 'object') {
+    const objectPayload = payload as {
+      message?: unknown;
+      fields?: Array<{ field?: unknown; message?: unknown }>;
+    };
+
+    if (typeof objectPayload.message === 'string' && objectPayload.message.trim().length > 0) {
+      return objectPayload.message.trim();
+    }
+
+    if (Array.isArray(objectPayload.fields) && objectPayload.fields.length > 0) {
+      const messages = objectPayload.fields
+        .map((field) => (typeof field?.message === 'string' ? field.message.trim() : ''))
+        .filter((message) => message.length > 0);
+      if (messages.length > 0) {
+        return messages.join(' | ');
+      }
+    }
+  }
+
+  return null;
+}
+
+export function resolveCreateUserErrorMessage(error: unknown): string {
+  if (!(error instanceof HttpErrorResponse)) {
+    return 'Failed to create user.';
+  }
+
+  const backendMessage = extractBackendErrorMessage(error);
+
+  if (error.status === 409) {
+    return backendMessage ?? 'Email already exists.';
+  }
+
+  if (error.status === 400) {
+    return backendMessage ?? 'Invalid user data. Please review the form.';
+  }
+
+  if (error.status >= 500) {
+    return backendMessage ?? 'User creation failed due to a server error. Please retry.';
+  }
+
+  return backendMessage ?? 'Failed to create user.';
+}
 
 @Component({
   selector: 'app-user-management',
@@ -191,7 +243,7 @@ export class UserManagementComponent {
           },
           error: (error) => {
             console.error(error);
-            this.toastr.error('Failed to create user.', 'User Management');
+            this.toastr.error(resolveCreateUserErrorMessage(error), 'User Management');
           }
         });
     });
