@@ -23,6 +23,10 @@ import { DashboardLayoutComponent } from '../dashboard/shared/dashboard-layout.c
 import { AuditHistoryDTO, PageResponse, PendingValidationTaskDTO } from '../../models/request.models';
 import { RequestDecisionDialogComponent, RequestDecisionDialogResult } from './request-decision-dialog.component';
 import { RequestTableComponent, RequestTableRow } from './request-table.component';
+import { RealtimeSignalService } from '../../core/services/realtime-signal.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef } from '@angular/core';
+import { debounceTime } from 'rxjs/operators';
 
 interface PageState {
   pageIndex: number;
@@ -56,6 +60,8 @@ export class ManagerRequestsComponent {
   private readonly requestService = inject(RequestService);
   private readonly dialog = inject(MatDialog);
   private readonly toastr = inject(ToastrService);
+  private readonly realtimeSignalService = inject(RealtimeSignalService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly pageSizeOptions = [10, 20, 50];
 
@@ -63,6 +69,19 @@ export class ManagerRequestsComponent {
   private readonly refresh$ = new Subject<void>();
   private readonly loadingSubject = new BehaviorSubject<boolean>(false);
   readonly loading$ = this.loadingSubject.asObservable();
+
+  constructor() {
+    this.realtimeSignalService.connect();
+    this.realtimeSignalService.onSignal(['MANAGER_INBOX_CHANGED', 'RECONNECT'])
+      .pipe(
+        debounceTime(500),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.toastr.info('Inbox updated: new request received', 'Real-time Update');
+        this.refresh();
+      });
+  }
 
   private readonly page$ = combineLatest([
     this.pageState$,

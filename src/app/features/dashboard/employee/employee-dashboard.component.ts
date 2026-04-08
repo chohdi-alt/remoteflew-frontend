@@ -13,6 +13,11 @@ import { EmployeeDashboardDTO } from '../dashboard.models';
 import { BaseChartComponent } from '../shared/base-chart.component';
 import { DashboardLayoutComponent } from '../shared/dashboard-layout.component';
 import { KpiCardComponent } from '../shared/kpi-card.component';
+import { RealtimeSignalService } from '../../../core/services/realtime-signal.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 interface EmployeeDashboardViewModel {
   raw: EmployeeDashboardDTO;
@@ -47,18 +52,34 @@ interface DashboardFilterState {
 })
 export class EmployeeRoleDashboardComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly realtimeSignalService = inject(RealtimeSignalService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly fromControl = new FormControl<string>('', { nonNullable: true });
   readonly toControl = new FormControl<string>('', { nonNullable: true });
   readonly recentColumns: string[] = ['requestId', 'startDate', 'endDate', 'status', 'specialCase', 'managerComment', 'hrComment'];
+  private readonly refresh$ = new BehaviorSubject<number>(0);
+
+  constructor() {
+    this.realtimeSignalService.connect();
+    this.realtimeSignalService.onSignal(['EMPLOYEE_REQUEST_CHANGED', 'RECONNECT'])
+      .pipe(
+        debounceTime(500),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.refresh$.next(Date.now());
+      });
+  }
 
   private readonly filterState$: Observable<DashboardFilterState> = combineLatest([
     this.fromControl.valueChanges.pipe(startWith(this.fromControl.value)),
-    this.toControl.valueChanges.pipe(startWith(this.toControl.value))
+    this.toControl.valueChanges.pipe(startWith(this.toControl.value)),
+    this.refresh$.asObservable()
   ]).pipe(
-    map(([from, to]) => {
-      const cleanFrom = this.toFilterDate(from);
-      const cleanTo = this.toFilterDate(to);
+    map(([from, to, _refresh]) => {
+      const cleanFrom = this.toFilterDate(from as string);
+      const cleanTo = this.toFilterDate(to as string);
       return {
         from: cleanFrom,
         to: cleanTo,

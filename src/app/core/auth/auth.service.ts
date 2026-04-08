@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { Observable, firstValueFrom, map, tap, throwError } from 'rxjs';
+import { Observable, Subject, firstValueFrom, map, tap, throwError } from 'rxjs';
 import { AppRole, AuthTokenResponse, CurrentUser, LoginRequestPayload, RemoteFlowTokenParsed, StoredAuthSession } from '../../models/auth.models';
 import { AuthApiService } from '../../services/auth-api.service';
 import { CurrentUserService } from './current-user.service';
@@ -34,6 +34,8 @@ export class AuthService {
 
   private refreshIntervalId: ReturnType<typeof setInterval> | null = null;
   private refreshPromise: Promise<string | undefined> | null = null;
+
+  public readonly tokenRefreshed$ = new Subject<string>();
 
   init(): Promise<boolean> {
     if (isPlatformBrowser(this.platformId)) {
@@ -202,6 +204,8 @@ export class AuthService {
     this.refreshTokenValue = session.refreshToken;
     this.accessTokenExpiresAt = session.expiresAt;
     this.refreshTokenExpiresAt = session.refreshExpiresAt;
+
+    this.tokenRefreshed$.next(session.accessToken);
 
     this.currentUserService.setFromJwt(session.accessToken, session.roles);
     this.persistToStorage();
