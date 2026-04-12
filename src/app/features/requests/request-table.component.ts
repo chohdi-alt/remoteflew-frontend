@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
+import { ToastrService } from 'ngx-toastr';
 import { RequestService } from '../../core/services/request.service';
+import { FileDownloadService } from '../../core/services/file-download.service';
 
 export interface RequestTableRow {
   requestId: number | null;
@@ -30,7 +31,9 @@ export interface RequestTableRow {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RequestTableComponent {
-  private readonly http = inject(HttpClient);
+  private readonly requestService = inject(RequestService);
+  private readonly fileDownloadService = inject(FileDownloadService);
+  private readonly toastr = inject(ToastrService);
 
   @Input() requests: RequestTableRow[] = [];
   @Input() loading = false;
@@ -45,18 +48,26 @@ export class RequestTableComponent {
 
   readonly displayedColumns: string[] = ['employee', 'startDate', 'endDate', 'reason', 'justificatif', 'status', 'createdAt', 'actions'];
 
-  viewJustificatif(requestId: number | null, event: Event): void {
+  viewJustificatif(row: RequestTableRow, event: Event): void {
     event.stopPropagation();
-    if (requestId) {
-      this.http.get(`/api/telework/${requestId}/justificatif/view`, { responseType: 'blob' })
-        .subscribe({
-          next: (blob: Blob) => {
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-          },
-          error: (err: any) => console.error('Failed to view document', err)
-        });
+    const downloadUrl = row.justificatifDownloadUrl ?? null;
+
+    if (!downloadUrl && !row.requestId) {
+      this.toastr.error('File reference unavailable for this request.', 'Download failed');
+      return;
     }
+
+    this.requestService.viewJustificatifFile(row.requestId ?? 0, downloadUrl)
+      .subscribe({
+        next: (response) => {
+          try {
+            this.fileDownloadService.downloadFromResponse(response);
+          } catch {
+            this.toastr.error('Unable to process downloaded file.', 'Download failed');
+          }
+        },
+        error: () => {}
+      });
   }
 
   onPageChange(event: PageEvent): void {

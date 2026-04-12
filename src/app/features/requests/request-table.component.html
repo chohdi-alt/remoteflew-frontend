@@ -30,8 +30,8 @@
         <th mat-header-cell *matHeaderCellDef>Justificatif</th>
         <td mat-cell *matCellDef="let row">
           @if (row.justificatifFileId) {
-            <button mat-button type="button" (click)="viewJustificatif(row.requestId, $event)">
-              👁 View
+            <button mat-button type="button" (click)="viewJustificatif(row, $event)">
+              Download justificatif
             </button>
           } @else {
             <span>--</span>

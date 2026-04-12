@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AppRole, PasswordUpdateRequiredResponse } from '../../../models/auth.models';
+import { AppRole, AuthError, AuthErrorType, CurrentUser, PasswordUpdateRequiredResponse } from '../../../models/auth.models';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -14,7 +14,7 @@ import { AuthService } from '../auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   private static readonly PASSWORD_UPDATE_USERNAME_KEY = 'remoteflow.password_update.username';
 
   private readonly auth = inject(AuthService);
@@ -28,10 +28,37 @@ export class LoginComponent implements OnInit {
 
   isSubmitting = false;
   errorMessage = '';
+  retryAfterSeconds: number | null = null;
+  lockUntil: number | null = null;
+  private countdownInterval: any;
+
+  ngOnDestroy(): void {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+  }
 
   ngOnInit(): void {
-    if (this.auth.isAuthenticated() || this.hasStoredToken()) {
-      this.redirectToDashboard(this.readStoredRole());
+    if (this.auth.isAuthenticated()) {
+      this.redirectToDashboard(this.auth.getPrimaryRole());
+      return;
+    }
+
+    this.restoreTimer();
+  }
+
+  private restoreTimer(): void {
+    const stored = sessionStorage.getItem('lockUntil');
+    if (stored) {
+      this.lockUntil = Number(stored);
+      const remaining = Math.floor((this.lockUntil - Date.now()) / 1000);
+
+      if (remaining > 0) {
+        this.retryAfterSeconds = remaining;
+        this.startCountdown();
+      } else {
+        sessionStorage.removeItem('lockUntil');
+      }
     }
   }
 
@@ -50,54 +77,90 @@ export class LoginComponent implements OnInit {
       .login(username, password)
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
-        next: () => {
-          this.clearPasswordUpdateUsername();
-          this.redirectToDashboard(this.auth.getPrimaryRole());
-        },
-        error: (error: unknown) => {
-          this.auth.clearSession();
-          if (error instanceof HttpErrorResponse) {
-            const payload =
-              typeof error.error === 'object' && error.error !== null
-                ? (error.error as Partial<PasswordUpdateRequiredResponse>)
-                : null;
-
-            if (
-              error.status === 403 &&
-              payload?.error === 'PASSWORD_UPDATE_REQUIRED' &&
-              typeof payload.username === 'string' &&
-              payload.username.length > 0
-            ) {
-              this.storePasswordUpdateUsername(payload.username);
-              void this.router.navigateByUrl('/change-password');
-              return;
-            }
-
-            if (error.status === 401) {
-              this.errorMessage = 'Invalid username or password.';
-              return;
-            }
+        next: (result) => {
+          if (typeof result === 'object' && result !== null && 'success' in result && result.success === false) {
+            this.handleAuthError(result.error);
+            return;
           }
 
-          this.errorMessage = 'Unable to log in right now. Please try again.';
+          this.clearPasswordUpdateUsername();
+          sessionStorage.removeItem('lockUntil');
+          this.lockUntil = null;
+          this.retryAfterSeconds = null;
+          this.redirectToDashboard(this.auth.getPrimaryRole());
+        },
+        error: () => {
+          this.auth.clearSession();
+          this.errorMessage = 'An unexpected error occurred. Please try again.';
         }
       });
   }
 
-  private redirectToDashboard(role: AppRole | string | null | undefined): void {
-    void this.router.navigateByUrl(this.auth.getDashboardRouteForRole(role));
+  private handleAuthError(error: AuthError): void {
+    this.auth.clearSession();
+
+    switch (error.type) {
+      case AuthErrorType.INVALID_CREDENTIALS:
+        this.errorMessage = 'Invalid username or password.';
+        break;
+      case AuthErrorType.TEMPORARY_LOCK:
+        const retry = error.retryAfterSeconds ?? 60;
+        this.lockUntil = Date.now() + retry * 1000;
+        sessionStorage.setItem('lockUntil', this.lockUntil.toString());
+        this.startCountdown();
+        break;
+      case AuthErrorType.ACCOUNT_DISABLED:
+        this.errorMessage = 'Your account has been disabled. Contact your administrator.';
+        break;
+      case AuthErrorType.PASSWORD_RESET_REQUIRED:
+        this.errorMessage = 'Your account was reactivated. Please check your email to reset your password.';
+        break;
+      case AuthErrorType.UNKNOWN:
+      default:
+        this.errorMessage = 'An unexpected error occurred. Please try again.';
+        break;
+    }
   }
 
-  private readStoredRole(): AppRole | null {
-    if (typeof globalThis.localStorage === 'undefined') {
-      return this.auth.getPrimaryRole();
+  private startCountdown() {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
     }
 
-    return (localStorage.getItem('user_role') as AppRole | null) ?? this.auth.getPrimaryRole();
+    this.updateLockMessage();
+    this.countdownInterval = setInterval(() => {
+      if (!this.lockUntil) {
+        this.clearTimer();
+        return;
+      }
+
+      const remaining = Math.floor((this.lockUntil - Date.now()) / 1000);
+
+      if (remaining > 0) {
+        this.retryAfterSeconds = remaining;
+        this.updateLockMessage();
+      } else {
+        this.clearTimer();
+      }
+    }, 1000);
   }
 
-  private hasStoredToken(): boolean {
-    return typeof globalThis.localStorage !== 'undefined' && !!localStorage.getItem('access_token');
+  private clearTimer() {
+    this.retryAfterSeconds = 0;
+    this.lockUntil = null;
+    sessionStorage.removeItem('lockUntil');
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+    this.errorMessage = '';
+  }
+
+  private updateLockMessage() {
+    this.errorMessage = `Too many failed attempts. Try again in ${this.retryAfterSeconds} seconds.`;
+  }
+
+  private redirectToDashboard(role: AppRole | string | null | undefined): void {
+    void this.router.navigateByUrl(this.auth.getDashboardRouteForRole(role));
   }
 
   private storePasswordUpdateUsername(username: string): void {

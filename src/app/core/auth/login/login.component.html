@@ -16,7 +16,7 @@
       <p class="error">{{ errorMessage }}</p>
     }
 
-    <button type="submit" [disabled]="isSubmitting || form.invalid">
+    <button type="submit" [disabled]="isSubmitting || form.invalid || (retryAfterSeconds && retryAfterSeconds > 0)">
       {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
     </button>
   </form>

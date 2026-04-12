@@ -6,17 +6,19 @@ export const RoleGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  const requiredRoles = (route.data?.['roles'] as string[] | undefined) ?? [];
+  return auth.init().then(() => {
+    const requiredRoles = (route.data?.['roles'] as string[] | undefined) ?? [];
 
-  if (!auth.isAuthenticated()) {
-    return router.createUrlTree(['/login'], {
-      queryParams: { returnUrl: state.url }
-    });
-  }
+    if (!auth.isAuthenticated()) {
+      return router.createUrlTree(['/login'], {
+        queryParams: { returnUrl: state.url }
+      });
+    }
 
-  if (requiredRoles.length === 0 || auth.hasAnyRole(requiredRoles)) {
-    return true;
-  }
+    if (requiredRoles.length === 0 || auth.hasAnyRole(requiredRoles)) {
+      return true;
+    }
 
-  return router.createUrlTree(['/access-denied']);
+    return router.createUrlTree(['/access-denied']);
+  });
 };

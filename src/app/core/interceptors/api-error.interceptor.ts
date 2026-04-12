@@ -158,16 +158,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
         );
       }
 
-      if (error.status === 403 && (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url) || isActivationEndpoint(req.url))) {
-        const payload =
-          typeof error.error === 'object' && error.error !== null
-            ? (error.error as { error?: string })
-            : null;
-
-        if (payload?.error === 'PASSWORD_UPDATE_REQUIRED') {
-          return throwError(() => error);
-        }
-
+      if (isLoginEndpoint(req.url) || isChangePasswordEndpoint(req.url) || isActivationEndpoint(req.url)) {
         return throwError(() => error);
       }
 

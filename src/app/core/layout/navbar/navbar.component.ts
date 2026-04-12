@@ -15,15 +15,7 @@ export class NavbarComponent {
   private readonly router = inject(Router);
 
   isAuthenticated(): boolean {
-    if (this.authService.isAuthenticated()) {
-      return true;
-    }
-
-    if (typeof globalThis.localStorage !== 'undefined') {
-      return !!globalThis.localStorage.getItem('remoteflow.auth.session');
-    }
-
-    return false;
+    return this.authService.isAuthenticated() || this.authService.hasRefreshToken();
   }
 
   navigateToDashboard(): void {

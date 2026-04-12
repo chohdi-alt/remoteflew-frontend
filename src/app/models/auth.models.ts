@@ -1,4 +1,4 @@
-﻿export const APP_ROLES = ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] as const;
+export const APP_ROLES = ['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 export interface RemoteFlowTokenParsed {
@@ -85,4 +85,39 @@ export interface ActivateAccountRequestPayload {
 export interface ActivateAccountResponse {
   success: boolean;
   username: string;
+}
+
+export enum AuthErrorType {
+  INVALID_CREDENTIALS,
+  TEMPORARY_LOCK,
+  ACCOUNT_DISABLED,
+  PASSWORD_RESET_REQUIRED,
+  UNKNOWN
+}
+
+export interface AuthError {
+  type: AuthErrorType;
+  retryAfterSeconds?: number;
+}
+
+function mapErrorType(error: string): AuthErrorType {
+  switch (error) {
+    case 'AUTH_INVALID':
+      return AuthErrorType.INVALID_CREDENTIALS;
+    case 'AUTH_TEMP_LOCK':
+      return AuthErrorType.TEMPORARY_LOCK;
+    case 'AUTH_ACCOUNT_DISABLED':
+      return AuthErrorType.ACCOUNT_DISABLED;
+    case 'PASSWORD_UPDATE_REQUIRED':
+      return AuthErrorType.PASSWORD_RESET_REQUIRED;
+    default:
+      return AuthErrorType.UNKNOWN;
+  }
+}
+
+export function mapBackendError(error: string, payload?: any): AuthError {
+  return {
+    type: mapErrorType(error),
+    retryAfterSeconds: payload?.retryAfterSeconds
+  };
 }

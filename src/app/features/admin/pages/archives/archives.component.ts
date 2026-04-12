@@ -1,8 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { ToastrService } from 'ngx-toastr';
 import { AdminTabsComponent } from '../../../administration/user-management/admin-tabs.component';
 import { TeleworkScoreDTO } from '../../../../models/scoring.models';
+import { RequestService } from '../../../../core/services/request.service';
+import { FileDownloadService } from '../../../../core/services/file-download.service';
 
 export interface ArchiveSummaryDTO {
   requestId: number;
@@ -144,12 +147,12 @@ export interface ArchiveSummaryDTO {
                   </td>
                   <td>
                     @if (item.justificatifFileId) {
-                      <button class="btn-view" (click)="viewJustificatif(item.requestId)" title="View Justificatif">
+                      <button class="btn-view" (click)="viewJustificatif(item.requestId)" title="Download justificatif">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                           <circle cx="12" cy="12" r="3"/>
                         </svg>
-                        View
+                        Download
                       </button>
                     }
                   </td>
@@ -164,7 +167,7 @@ export interface ArchiveSummaryDTO {
                   </td>
                   <td>
                     @if (item.archiveNodeId) {
-                      <button class="btn-view" (click)="viewArchive(item.requestId)" title="View PDF Archive">
+                      <button class="btn-view" (click)="viewArchive(item.requestId)" title="Download archive">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                           <polyline points="14 2 14 8 20 8"/>
@@ -172,7 +175,7 @@ export interface ArchiveSummaryDTO {
                           <line x1="16" y1="17" x2="8" y2="17"/>
                           <polyline points="10 9 9 9 8 9"/>
                         </svg>
-                        PDF ({{ item.archiveNodeId ? 'OK' : 'NULL' }})
+                        Download archive
                       </button>
                     }
                   </td>
@@ -561,7 +564,12 @@ export class ArchivesComponent implements OnInit {
   approvedCount = signal(0);
   rejectedCount = signal(0);
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private requestService: RequestService,
+    private fileDownloadService: FileDownloadService,
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit(): void {
     this.loadArchives();
@@ -572,7 +580,6 @@ export class ArchivesComponent implements OnInit {
     this.error.set(null);
     this.http.get<ArchiveSummaryDTO[]>('/api/admin/archives').subscribe({
       next: (data) => {
-        console.log('ARCHIVE DATA', data);
         this.archives.set(data);
         this.approvedCount.set(data.filter(d => d.status === 'APPROVED').length);
         this.rejectedCount.set(data.filter(d => d.status === 'REJECTED').length);
@@ -586,33 +593,28 @@ export class ArchivesComponent implements OnInit {
   }
 
   viewJustificatif(requestId: number): void {
-    this.http.get(`/api/telework/${requestId}/justificatif/view`, {
-      responseType: 'blob'
-    }).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    this.requestService.viewJustificatifFile(requestId).subscribe({
+      next: (response) => {
+        try {
+          this.fileDownloadService.downloadFromResponse(response);
+        } catch {
+          this.toastr.error('Unable to process downloaded file.', 'Download failed');
+        }
       },
-      error: () => {
-        alert('Failed to open justificatif. Please try again.');
-      }
+      error: () => {}
     });
   }
 
   viewArchive(requestId: number): void {
-    this.http.get(`/api/admin/archives/${requestId}/view`, {
-      responseType: 'blob'
-    }).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        // Clean up after a short delay
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    this.requestService.viewArchiveFile(requestId).subscribe({
+      next: (response) => {
+        try {
+          this.fileDownloadService.downloadFromResponse(response);
+        } catch {
+          this.toastr.error('Unable to process downloaded file.', 'Download failed');
+        }
       },
-      error: () => {
-        alert('Failed to open archive PDF. Please try again.');
-      }
+      error: () => {}
     });
   }
 
@@ -622,7 +624,7 @@ export class ArchivesComponent implements OnInit {
         this.selectedScore.set(score);
       },
       error: () => {
-        alert('Failed to load score details. Please try again.');
+        this.toastr.error('Failed to load score details. Please try again.', 'Archive');
       }
     });
   }

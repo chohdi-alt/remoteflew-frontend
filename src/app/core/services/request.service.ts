@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
@@ -34,8 +34,20 @@ export class RequestService {
     return this.http.get<AuditHistoryDTO[]>(`${this.teleworkBasePath}/${requestId}/history`);
   }
 
-  viewJustificatifFile(requestId: number): Observable<Blob> {
-    return this.http.get(`${this.teleworkBasePath}/${requestId}/justificatif/view`, {
+  viewJustificatifFile(requestId: number, downloadUrl?: string | null): Observable<HttpResponse<Blob>> {
+    const endpoint = downloadUrl && downloadUrl.trim().length > 0
+      ? downloadUrl
+      : `${this.teleworkBasePath}/${requestId}/justificatif/view`;
+
+    return this.http.get(endpoint, {
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
+  viewArchiveFile(requestId: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiBasePath}/admin/archives/${requestId}/view`, {
+      observe: 'response',
       responseType: 'blob'
     });
   }

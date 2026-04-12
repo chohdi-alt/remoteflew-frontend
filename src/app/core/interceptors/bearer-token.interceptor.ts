@@ -55,7 +55,7 @@ export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   return from(auth.getToken(30)).pipe(
     // Token acquisition fallback only; downstream HTTP errors should propagate.
-    catchError(() => of(auth.token)),
+    catchError(() => of(auth.getAccessToken())),
     switchMap((token) => {
       if (!token) {
         return forward(req);

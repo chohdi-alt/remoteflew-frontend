@@ -1,9 +1,10 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { Observable, Subject, firstValueFrom, map, tap, throwError } from 'rxjs';
-import { AppRole, AuthTokenResponse, CurrentUser, LoginRequestPayload, RemoteFlowTokenParsed, StoredAuthSession } from '../../models/auth.models';
+import { Observable, Subject, firstValueFrom, map, tap, throwError, catchError, of } from 'rxjs';
+import { AppRole, AuthError, AuthErrorType, AuthTokenResponse, CurrentUser, LoginRequestPayload, RemoteFlowTokenParsed, StoredAuthSession, mapBackendError } from '../../models/auth.models';
 import { AuthApiService } from '../../services/auth-api.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CurrentUserService } from './current-user.service';
 
 interface NormalizedSession {
@@ -11,7 +12,6 @@ interface NormalizedSession {
   refreshToken: string | null;
   expiresAt: number | null;
   refreshExpiresAt: number | null;
-  roles: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,22 +34,30 @@ export class AuthService {
 
   private refreshIntervalId: ReturnType<typeof setInterval> | null = null;
   private refreshPromise: Promise<string | undefined> | null = null;
+  private initPromise: Promise<boolean> | null = null;
 
   public readonly tokenRefreshed$ = new Subject<string>();
 
-  init(): Promise<boolean> {
-    if (isPlatformBrowser(this.platformId)) {
-      this.restoreFromStorage();
-      if (this.isAuthenticated()) {
-        this.startTokenRefreshLoop();
-      }
+  async init(): Promise<boolean> {
+    if (this.initPromise) {
+      return this.initPromise;
     }
 
-    return Promise.resolve(true);
+    this.initPromise = this.initializeSession();
+
+    return this.initPromise;
   }
 
   get token(): string | undefined {
     return this.accessToken ?? undefined;
+  }
+
+  getAccessToken(): string | null {
+    return this.accessToken;
+  }
+
+  getRefreshToken(): string | null {
+    return this.refreshTokenValue || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('refresh_token') : null);
   }
 
   get username(): string | undefined {
@@ -60,9 +68,9 @@ export class AuthService {
     return this.currentUserService.getRoles();
   }
 
-  login(payload: LoginRequestPayload): Observable<CurrentUser>;
-  login(username: string, password: string): Observable<CurrentUser>;
-  login(payloadOrUsername: LoginRequestPayload | string, maybePassword?: string): Observable<CurrentUser> {
+  login(payload: LoginRequestPayload): Observable<CurrentUser | { success: false; error: AuthError }>;
+  login(username: string, password: string): Observable<CurrentUser | { success: false; error: AuthError }>;
+  login(payloadOrUsername: LoginRequestPayload | string, maybePassword?: string): Observable<CurrentUser | { success: false; error: AuthError }> {
     const login$ = (payload: LoginRequestPayload) =>
       this.authApi.login(payload).pipe(
         map((response) => this.normalizeSession(response)),
@@ -73,6 +81,14 @@ export class AuthService {
             throw new Error('Unable to resolve authenticated user from token.');
           }
           return user;
+        }),
+        catchError((err: unknown) => {
+          if (err instanceof HttpErrorResponse) {
+            const backendError = err?.error?.error;
+            const error = mapBackendError(backendError, err.error);
+            return of({ success: false, error } as const);
+          }
+          return throwError(() => err);
         })
       );
 
@@ -98,7 +114,7 @@ export class AuthService {
         refreshExpiresIn: session.refreshExpiresAt
           ? Math.max(0, Math.floor((session.refreshExpiresAt - Date.now()) / 1000))
           : undefined,
-        roles: session.roles
+        roles: this.currentUserService.getRoles()
       }))
     );
   }
@@ -117,7 +133,10 @@ export class AuthService {
     this.accessTokenExpiresAt = null;
     this.refreshTokenExpiresAt = null;
     this.currentUserService.clear();
-    this.removeFromStorage();
+    this.tokenRefreshed$.next('');
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.clear();
+    }
   }
 
   hasRole(role: string): boolean {
@@ -173,7 +192,8 @@ export class AuthService {
   }
 
   hasRefreshToken(): boolean {
-    return !!this.refreshTokenValue && !this.isTokenExpired(this.refreshTokenExpiresAt, 0);
+    const rToken = this.getRefreshToken();
+    return !!rToken && (!this.refreshTokenExpiresAt || !this.isTokenExpired(this.refreshTokenExpiresAt, 0));
   }
 
   async forceRefreshToken(): Promise<string | undefined> {
@@ -207,7 +227,7 @@ export class AuthService {
 
     this.tokenRefreshed$.next(session.accessToken);
 
-    this.currentUserService.setFromJwt(session.accessToken, session.roles);
+    this.currentUserService.setFromJwt(session.accessToken);
     this.persistToStorage();
     this.startTokenRefreshLoop();
   }
@@ -239,8 +259,7 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiresAt,
-      refreshExpiresAt,
-      roles: this.extractRoles(response, tokenClaims)
+      refreshExpiresAt
     };
   }
 
@@ -276,18 +295,9 @@ export class AuthService {
     throw new Error('Base64 decoder is not available in this runtime.');
   }
 
-  private extractRoles(response: AuthTokenResponse, tokenClaims: RemoteFlowTokenParsed | null): string[] {
-    const responseRole = response.role ? [response.role] : [];
-    const responseRoles = response.roles ?? [];
-    const tokenRoles = tokenClaims?.roles ?? [];
-    const realmRoles = tokenClaims?.realm_access?.roles ?? [];
-    const resourceRoles = Object.values(tokenClaims?.resource_access ?? {}).flatMap((resource) => resource?.roles ?? []);
-
-    return Array.from(new Set([...responseRole, ...responseRoles, ...tokenRoles, ...realmRoles, ...resourceRoles]));
-  }
-
   private async refreshAccessToken(): Promise<string | undefined> {
-    if (!this.refreshTokenValue || this.isTokenExpired(this.refreshTokenExpiresAt, 0)) {
+    const rToken = this.getRefreshToken();
+    if (!rToken || (this.refreshTokenExpiresAt != null && this.isTokenExpired(this.refreshTokenExpiresAt, 0))) {
       this.clearSession();
       return undefined;
     }
@@ -296,7 +306,7 @@ export class AuthService {
       return this.refreshPromise;
     }
 
-    this.refreshPromise = firstValueFrom(this.refresh(this.refreshTokenValue))
+    this.refreshPromise = firstValueFrom(this.refresh(rToken))
       .then(() => {
         return this.accessToken ?? undefined;
       })
@@ -321,6 +331,24 @@ export class AuthService {
     }, AuthService.TOKEN_REFRESH_CHECK_INTERVAL_MS);
 
     this.checkTokenExpiration();
+  }
+
+  private async initializeSession(): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return true;
+    }
+
+    if (this.hasRefreshToken()) {
+      await this.refreshAccessToken();
+    }
+
+    if (this.isAuthenticated()) {
+      // Re-hydrate user/roles from access token after startup refresh.
+      this.currentUserService.setFromJwt(this.accessToken);
+      this.startTokenRefreshLoop();
+    }
+
+    return true;
   }
 
   private stopTokenRefreshLoop(): void {
@@ -351,35 +379,7 @@ export class AuthService {
   }
 
   private restoreFromStorage(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const raw = localStorage.getItem(AuthService.STORAGE_KEY);
-    if (!raw) {
-      return;
-    }
-
-    try {
-      const session = JSON.parse(raw) as StoredAuthSession;
-      if (!session?.accessToken) {
-        this.removeFromStorage();
-        return;
-      }
-
-      if (this.isTokenExpired(session.expiresAt, 0)) {
-        this.removeFromStorage();
-        return;
-      }
-
-      this.accessToken = session.accessToken;
-      this.refreshTokenValue = session.refreshToken;
-      this.accessTokenExpiresAt = session.expiresAt;
-      this.refreshTokenExpiresAt = session.refreshExpiresAt;
-      this.currentUserService.setFromJwt(session.accessToken, session.roles ?? []);
-    } catch {
-      this.removeFromStorage();
-    }
+    // Deprecated: No longer restoring directly, using init() refresh flow instead.
   }
 
   private persistToStorage(): void {
@@ -387,33 +387,11 @@ export class AuthService {
       return;
     }
 
-    const payload: StoredAuthSession = {
-      accessToken: this.accessToken,
-      refreshToken: this.refreshTokenValue,
-      expiresAt: this.accessTokenExpiresAt,
-      refreshExpiresAt: this.refreshTokenExpiresAt,
-      roles: this.currentUserService.getRoles()
-    };
-
-    localStorage.setItem(AuthService.STORAGE_KEY, JSON.stringify(payload));
-    localStorage.setItem(AuthService.ACCESS_TOKEN_KEY, this.accessToken);
-
-    const primaryRole = this.getPrimaryRole();
-    if (primaryRole) {
-      localStorage.setItem(AuthService.USER_ROLE_KEY, primaryRole);
-    } else {
-      localStorage.removeItem(AuthService.USER_ROLE_KEY);
+    if (this.refreshTokenValue) {
+      sessionStorage.setItem('refresh_token', this.refreshTokenValue);
     }
   }
 
-  private removeFromStorage(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
 
-    localStorage.removeItem(AuthService.STORAGE_KEY);
-    localStorage.removeItem(AuthService.ACCESS_TOKEN_KEY);
-    localStorage.removeItem(AuthService.USER_ROLE_KEY);
-  }
 }
 
