@@ -5,7 +5,7 @@
       <input type="text" placeholder="Employee ID" formControlName="employeeId" />
       <input type="text" placeholder="Manager external ID" formControlName="managerExternalId" />
 
-      <select formControlName="status">
+      <select formControlName="status" title="Filter by status">
         <option value="">All statuses</option>
         @for (status of statuses; track status) {
           <option [value]="status">{{ status }}</option>
