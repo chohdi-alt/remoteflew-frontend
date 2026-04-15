@@ -54,6 +54,11 @@
     "eslint": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "eslint-plugin-angular": "^0.5.0"
+    "eslint-plugin-angular": "^0.5.0",
+    "@angular-eslint/builder": "^19.0.0",
+    "@angular-eslint/eslint-plugin": "^19.0.0",
+    "@angular-eslint/eslint-plugin-template": "^19.0.0",
+    "@angular-eslint/template-parser": "^19.0.0",
+    "@angular-eslint/schematics": "^19.0.0"
   }
 }
