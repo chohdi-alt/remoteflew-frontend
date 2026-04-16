@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable, distinctUntilChanged, map } from 'rxjs';
-import { AppRole, CurrentUser, LoginRequestPayload } from '../../models/auth.models';
+import { AppRole, CurrentUser, LoginRequestPayload, AuthError } from '../../models/auth.models';
 import { AuthService } from './auth.service';
 import { CurrentUserService } from './current-user.service';
 
+
+type AuthResult =
+  | CurrentUser
+  | { success: false; error: AuthError };
 @Injectable({
   providedIn: 'root'
 })
@@ -34,7 +38,7 @@ export class AuthFacadeService {
     return this.authService.hasAnyRole(roles);
   }
 
-  login(payload: LoginRequestPayload): Observable<CurrentUser> {
+  login(payload: LoginRequestPayload): Observable<AuthResult> {
     return this.authService.login(payload);
   }
 
