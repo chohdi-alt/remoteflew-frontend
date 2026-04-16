@@ -51,7 +51,8 @@
         "*.html"
       ],
       "extends": [
-        "plugin:angular/template-recommended"
+        "plugin:@angular-eslint/recommended",
+        "plugin:@angular-eslint/template/recommended"
       ],
       "rules": {}
     }
