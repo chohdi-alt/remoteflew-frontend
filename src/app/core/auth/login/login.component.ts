@@ -102,12 +102,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       case AuthErrorType.INVALID_CREDENTIALS:
         this.errorMessage = 'Invalid username or password.';
         break;
-      case AuthErrorType.TEMPORARY_LOCK:
+      case AuthErrorType.TEMPORARY_LOCK: {
         const retry = error.retryAfterSeconds ?? 60;
         this.lockUntil = Date.now() + retry * 1000;
         sessionStorage.setItem('lockUntil', this.lockUntil.toString());
         this.startCountdown();
         break;
+      }
       case AuthErrorType.ACCOUNT_DISABLED:
         this.errorMessage = 'Your account has been disabled. Contact your administrator.';
         break;

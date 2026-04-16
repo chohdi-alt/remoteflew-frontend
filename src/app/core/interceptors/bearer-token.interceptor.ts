@@ -28,7 +28,7 @@ function isPublicAuthEndpoint(url: string): boolean {
 }
 
 export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
-  console.log('[INTERCEPTOR] REQUEST', req.url);
+  console.warn('[INTERCEPTOR] REQUEST', req.url);
 
   if (!isApiRequest(req.url) || isPublicAuthEndpoint(req.url)) {
     console.log('[INTERCEPTOR] FORWARDING');

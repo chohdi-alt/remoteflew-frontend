@@ -2,7 +2,7 @@ import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, Subject, firstValueFrom, map, tap, throwError, catchError, of } from 'rxjs';
-import { AppRole, AuthError, AuthErrorType, AuthTokenResponse, CurrentUser, LoginRequestPayload, RemoteFlowTokenParsed, StoredAuthSession, mapBackendError } from '../../models/auth.models';
+import { AppRole, AuthError, AuthTokenResponse, CurrentUser, LoginRequestPayload, RemoteFlowTokenParsed, mapBackendError } from '../../models/auth.models';
 import { AuthApiService } from '../../services/auth-api.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CurrentUserService } from './current-user.service';
