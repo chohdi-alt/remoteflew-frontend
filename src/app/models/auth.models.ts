@@ -115,9 +115,11 @@ function mapErrorType(error: string): AuthErrorType {
   }
 }
 
-export function mapBackendError(error: string, payload?: any): AuthError {
+export function mapBackendError(error: string, payload?: Record<string, unknown>): AuthError {
+  const retryAfter = payload?.['retryAfterSeconds'];
+
   return {
     type: mapErrorType(error),
-    retryAfterSeconds: payload?.retryAfterSeconds
+    retryAfterSeconds: typeof retryAfter === 'number' ? retryAfter : undefined
   };
 }

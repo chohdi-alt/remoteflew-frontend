@@ -1,12 +1,14 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ManagerRequestsComponent } from './manager-requests.component';
 import { RequestService } from '../../core/services/request.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
-import { RealtimeSignalService } from '../../core/services/realtime-signal.service';
+import { RealtimeSignalService, RealtimeSignal } from '../../core/services/realtime-signal.service';
 import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { DestroyRef } from '@angular/core';
+import { RequestTableRow } from './request-table.component';
+import { PageEvent } from '@angular/material/paginator';
+import { RequestDecisionDialogComponent, RequestDecisionDialogResult } from './request-decision-dialog.component';
 
 describe('ManagerRequestsComponent', () => {
   let component: ManagerRequestsComponent;
@@ -39,7 +41,7 @@ describe('ManagerRequestsComponent', () => {
       first: true,
       last: true
     }));
-    realtimeSignalMock.onSignal.and.returnValue(of({ type: 'MANAGER_INBOX_CHANGED', entityId: undefined } as any));
+    realtimeSignalMock.onSignal.and.returnValue(of({ type: 'MANAGER_INBOX_CHANGED', entityId: 0 } as RealtimeSignal));
 
     await TestBed.configureTestingModule({
       imports: [ManagerRequestsComponent, NoopAnimationsModule],
@@ -86,7 +88,7 @@ describe('ManagerRequestsComponent', () => {
   });
 
   it('should not submit decision if requestId is missing', () => {
-    const invalidRow = { taskKey: 'some-key' } as any;
+    const invalidRow = { taskKey: 'some-key' } as unknown as RequestTableRow;
     component.onApprove(invalidRow);
     expect(toastrMock.error).toHaveBeenCalledWith(
       'Request identifier is missing for this workflow task.',
@@ -96,24 +98,24 @@ describe('ManagerRequestsComponent', () => {
   });
 
   it('should handle pagination changes', () => {
-    component.onPageChange({ pageIndex: 2, pageSize: 20, length: 100 });
+    component.onPageChange({ pageIndex: 2, pageSize: 20, length: 100 } as unknown as PageEvent);
     fixture.detectChanges();
     expect(requestServiceMock.getManagerRequests).toHaveBeenCalledWith(2, 20);
   });
 
   it('should open decision dialog for approval', () => {
-    const mockRow = { requestId: 123, taskKey: 'task-1' } as any;
-    dialogMock.open.and.returnValue({ afterClosed: () => of(undefined) } as any);
+    const mockRow = { requestId: 123, taskKey: 'task-1' } as unknown as RequestTableRow;
+    dialogMock.open.and.returnValue({ afterClosed: () => of(undefined) } as unknown as MatDialogRef<RequestDecisionDialogComponent, RequestDecisionDialogResult>);
 
     component.onApprove(mockRow);
 
     expect(dialogMock.open).toHaveBeenCalled();
-    const dialogArgs = dialogMock.open.calls.mostRecent().args as any[];
-    expect(dialogArgs[1]?.data.initialAction).toBe('approve');
+    const dialogArgs = dialogMock.open.calls.mostRecent().args as unknown[];
+    expect((dialogArgs[1] as { data: { initialAction: string } })?.data.initialAction).toBe('approve');
   });
 
   it('should show error if requestId is missing on approval', () => {
-    const mockRow = { taskKey: 'task-1' } as any; // No requestId
+    const mockRow = { taskKey: 'task-1' } as unknown as RequestTableRow; // No requestId
     component.onApprove(mockRow);
     expect(toastrMock.error).toHaveBeenCalledWith(jasmine.any(String), 'Manager Requests');
   });

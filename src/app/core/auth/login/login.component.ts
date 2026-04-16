@@ -1,10 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AppRole, AuthError, AuthErrorType, CurrentUser, PasswordUpdateRequiredResponse } from '../../../models/auth.models';
+import { AppRole, AuthError, AuthErrorType } from '../../../models/auth.models';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -30,7 +29,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   errorMessage = '';
   retryAfterSeconds: number | null = null;
   lockUntil: number | null = null;
-  private countdownInterval: any;
+  private countdownInterval: ReturnType<typeof setInterval> | null = null;
 
   ngOnDestroy(): void {
     if (this.countdownInterval) {

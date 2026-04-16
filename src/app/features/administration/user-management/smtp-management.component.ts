@@ -53,7 +53,7 @@ export class SmtpManagementComponent implements OnInit {
   }
 
   loadConfigs(force = false): void {
-    console.count('[SMTP CALL]');
+    console.warn('[SMTP CALL]');
     if (!force && this.loaded) {
       return;
     }
@@ -64,7 +64,7 @@ export class SmtpManagementComponent implements OnInit {
     this.loaded = true;
     this.loadInFlight = true;
     this.isLoading = true;
-    console.log('[SMTP] CALL START');
+    console.warn('[SMTP] CALL START');
     this.smtpService
       .list()
       .pipe(
@@ -75,7 +75,7 @@ export class SmtpManagementComponent implements OnInit {
       )
       .subscribe({
         next: (configs) => {
-          console.log('[SMTP] RESPONSE', configs);
+          console.warn('[SMTP] RESPONSE', configs);
           this.configs = Array.isArray(configs) ? configs : [];
           this.isLoading = false;
           this.loadEffective();
@@ -87,7 +87,7 @@ export class SmtpManagementComponent implements OnInit {
           this.toastr.error('Unable to load SMTP configurations.', 'SMTP');
         },
         complete: () => {
-          console.log('[SMTP] COMPLETE');
+          console.warn('[SMTP] COMPLETE');
         }
       });
   }
@@ -272,7 +272,7 @@ export class SmtpManagementComponent implements OnInit {
   }
 
   private normalizeOptional(value: string | null | undefined): string | null {
-    if (value == null) {
+    if (value === null || value === undefined) {
       return null;
     }
     const trimmed = value.trim();
@@ -280,7 +280,7 @@ export class SmtpManagementComponent implements OnInit {
   }
 
   private normalizeNumber(value: number | null | undefined): number | null {
-    if (value == null || Number.isNaN(value)) {
+    if (value === null || value === undefined || Number.isNaN(value)) {
       return null;
     }
     const parsed = Number(value);

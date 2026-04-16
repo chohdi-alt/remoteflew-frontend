@@ -17,7 +17,7 @@ export class ScoringFormComponent implements OnChanges {
   @Input({ required: true }) score: TeleworkScoreSummaryDTO | null = null;
   @Input() submitting = false;
   @Output() submitScore = new EventEmitter<ManagerScoreSubmissionRequest>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelScoring = new EventEmitter<void>();
 
   protected readonly form = this.formBuilder.group({
     attendance: [null as number | null, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -46,10 +46,10 @@ export class ScoringFormComponent implements OnChanges {
     const behavior = this.form.controls.behavior.value;
 
     if (
-      attendance == null ||
-      tasks == null ||
-      punctuality == null ||
-      behavior == null
+      attendance === null ||
+      tasks === null ||
+      punctuality === null ||
+      behavior === null
     ) {
       return null;
     }
@@ -60,7 +60,7 @@ export class ScoringFormComponent implements OnChanges {
 
   get requiresJustification(): boolean {
     const total = this.previewTotal;
-    return total != null && total < 60;
+    return total !== null && total < 60;
   }
 
   protected onSubmit(): void {

@@ -31,7 +31,7 @@ export class RealtimeSignalService {
     });
 
     this.client.onConnect = () => {
-      console.log('[RealtimeSignalService] Connected');
+      console.warn('[RealtimeSignalService] Connected');
       this.subscribeToDestinations();
       // Phase 1: Reconnect Sync - Force refresh on UI
       this.signalSubject.next({ type: 'RECONNECT', entityId: 0 });
@@ -43,12 +43,12 @@ export class RealtimeSignalService {
     };
 
     this.client.onWebSocketClose = () => {
-      console.log('[RealtimeSignalService] WebSocket closed. Reconnecting if active...');
+      console.warn('[RealtimeSignalService] WebSocket closed. Reconnecting if active...');
     };
 
-    this.authService.tokenRefreshed$.subscribe(newToken => {
+    this.authService.tokenRefreshed$.subscribe(_newToken => {
       if (this.client.active) {
-        console.log('[RealtimeSignalService] Token refreshed. Reconnecting STOMP client...');
+        console.warn('[RealtimeSignalService] Token refreshed. Reconnecting STOMP client...');
         this.disconnect();
         this.connect();
       }
@@ -63,7 +63,7 @@ export class RealtimeSignalService {
     this.client.connectHeaders = {
       Authorization: `Bearer ${this.authService.token}`
     };
-    
+
     this.client.activate();
   }
 
@@ -71,8 +71,8 @@ export class RealtimeSignalService {
     if (this.client.active) {
       this.subscriptions.forEach(sub => sub.unsubscribe());
       this.subscriptions = [];
-      this.client.deactivate();
-      console.log('[RealtimeSignalService] Disconnected');
+      void this.client.deactivate();
+      console.warn('[RealtimeSignalService] Disconnected');
     }
   }
 

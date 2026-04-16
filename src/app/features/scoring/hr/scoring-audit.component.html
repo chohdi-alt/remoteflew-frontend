@@ -41,7 +41,7 @@
                 <td>{{ row.employeeId }}</td>
                 <td>{{ row.managerExternalId || 'N/A' }}</td>
                 <td>{{ row.status }}</td>
-                <td>{{ row.totalScore == null ? 'N/A' : (row.totalScore | number:'1.2-2') }}</td>
+                <td>{{ row.totalScore === null ? 'N/A' : (row.totalScore | number:'1.2-2') }}</td>
                 <td>
                   <button type="button" (click)="selectRow(row)">Details</button>
                 </td>
