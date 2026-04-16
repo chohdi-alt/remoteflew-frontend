@@ -3,6 +3,7 @@ import { AuthApiService } from './auth-api.service';
 
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { LoginRequestPayload } from '../models/auth.models';
 
 describe('AuthApiService', () => {
   let service: AuthApiService;
@@ -30,7 +31,10 @@ describe('AuthApiService', () => {
   });
 
   it('should call login endpoint', () => {
-    const payload = { username: 'test', password: '123' } as any;
+    const payload: LoginRequestPayload = {
+      username: 'test',
+      password: '123'
+    };
 
     service.login(payload).subscribe();
 

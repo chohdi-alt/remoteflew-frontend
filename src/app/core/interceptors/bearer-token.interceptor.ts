@@ -43,7 +43,7 @@ export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   const auth = inject(AuthService);
   const forward = (requestToForward: typeof req) => {
-    console.log('[INTERCEPTOR] FORWARDING');
+    console.warn('[INTERCEPTOR] FORWARDING');
     return next(requestToForward).pipe(
       tap((res) => console.log('[INTERCEPTOR] RESPONSE', res)),
       catchError((err) => {
