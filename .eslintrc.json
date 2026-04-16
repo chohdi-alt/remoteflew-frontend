@@ -5,10 +5,7 @@
   ],
   "overrides": [
     {
-      "files": [
-        "*.ts"
-      ],
-      "parser": "@typescript-eslint/parser",
+      "files": ["*.ts"],
       "parserOptions": {
         "project": [
           "tsconfig.json",
@@ -17,41 +14,27 @@
         ],
         "createDefaultProgram": true
       },
-      "plugins": [
-        "@typescript-eslint",
-        "angular"
-      ],
       "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
-        "plugin:@typescript-eslint/recommended-requiring-type-checking"
+        "plugin:@angular-eslint/recommended"
       ],
       "rules": {
         "@typescript-eslint/no-unused-vars": [
           "error",
-          {
-            "argsIgnorePattern": "^_"
-          }
+          { "argsIgnorePattern": "^_" }
         ],
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/no-floating-promises": "error",
         "no-console": [
           "warn",
-          {
-            "allow": [
-              "warn",
-              "error"
-            ]
-          }
+          { "allow": ["warn", "error"] }
         ]
       }
     },
     {
-      "files": [
-        "*.html"
-      ],
+      "files": ["*.html"],
       "extends": [
-        "plugin:@angular-eslint/recommended",
         "plugin:@angular-eslint/template/recommended"
       ],
       "rules": {}
