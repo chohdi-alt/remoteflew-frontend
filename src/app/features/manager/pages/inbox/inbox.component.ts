@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { InboxMessage, InboxService } from '../../services/inbox.service';
 
 @Component({
   selector: 'app-inbox',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './inbox.component.html',
   styleUrl: './inbox.component.css'
 })

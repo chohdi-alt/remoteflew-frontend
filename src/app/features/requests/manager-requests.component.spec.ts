@@ -5,7 +5,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { RealtimeSignalService, RealtimeSignal } from '../../core/services/realtime-signal.service';
 import { of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { RequestTableRow } from './request-table.component';
 import { PageEvent } from '@angular/material/paginator';
 import {
@@ -18,9 +18,9 @@ describe('ManagerRequestsComponent', () => {
   let fixture: ComponentFixture<ManagerRequestsComponent>;
 
   let requestServiceMock: jasmine.SpyObj<RequestService>;
-  let dialogMock: jasmine.SpyObj<MatDialog>;
   let toastrMock: jasmine.SpyObj<ToastrService>;
   let realtimeSignalMock: jasmine.SpyObj<RealtimeSignalService>;
+  let mockDialog: any;
 
   beforeEach(async () => {
     requestServiceMock = jasmine.createSpyObj('RequestService', [
@@ -31,11 +31,9 @@ describe('ManagerRequestsComponent', () => {
       'rejectManagerRequest'
     ]);
 
-    dialogMock = jasmine.createSpyObj('MatDialog', ['open']);
     toastrMock = jasmine.createSpyObj('ToastrService', ['success', 'error', 'info']);
     realtimeSignalMock = jasmine.createSpyObj('RealtimeSignalService', ['connect', 'onSignal']);
 
-    // ✅ Safe default mocks
     requestServiceMock.getManagerRequests.and.returnValue(
       of({
         content: [],
@@ -49,28 +47,36 @@ describe('ManagerRequestsComponent', () => {
       })
     );
 
+    requestServiceMock.approveManagerRequest.and.returnValue(of(undefined));
+    requestServiceMock.rejectManagerRequest.and.returnValue(of(undefined));
+
     realtimeSignalMock.onSignal.and.returnValue(
       of({ type: 'MANAGER_INBOX_CHANGED', entityId: 0 } as RealtimeSignal)
     );
 
     realtimeSignalMock.connect.and.stub();
 
-    // ✅ CRITICAL FIX: Proper MatDialog mock
-    dialogMock.open.and.callFake(() => ({
-      afterClosed: () => of(undefined),
-      close: () => { },
-      componentInstance: {}
-    } as unknown as MatDialogRef<RequestDecisionDialogComponent, RequestDecisionDialogResult>));
+    mockDialog = {
+      open: jasmine.createSpy().and.returnValue({
+        afterClosed: () => of({ action: 'approve', comment: 'Looks good' })
+      })
+    };
 
     await TestBed.configureTestingModule({
-      imports: [ManagerRequestsComponent, NoopAnimationsModule],
+      imports: [ManagerRequestsComponent],
       providers: [
+        provideNoopAnimations(),
         { provide: RequestService, useValue: requestServiceMock },
-        { provide: MatDialog, useValue: dialogMock },
         { provide: ToastrService, useValue: toastrMock },
         { provide: RealtimeSignalService, useValue: realtimeSignalMock }
       ]
-    }).compileComponents();
+    })
+    .overrideComponent(ManagerRequestsComponent, {
+      add: {
+        providers: [{ provide: MatDialog, useValue: mockDialog }]
+      }
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(ManagerRequestsComponent);
     component = fixture.componentInstance;
@@ -136,9 +142,9 @@ describe('ManagerRequestsComponent', () => {
 
     component.onApprove(mockRow);
 
-    expect(dialogMock.open).toHaveBeenCalled();
+    expect(mockDialog.open).toHaveBeenCalled();
 
-    const dialogArgs = dialogMock.open.calls.mostRecent().args as unknown[];
+    const dialogArgs = mockDialog.open.calls.mostRecent().args as unknown[];
 
     expect((dialogArgs[1] as { data: { initialAction: string } }).data.initialAction)
       .toBe('approve');
