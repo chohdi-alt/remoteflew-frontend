@@ -1,17 +1,13 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ManagerRequestsComponent } from './manager-requests.component';
 import { RequestService } from '../../core/services/request.service';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { RealtimeSignalService, RealtimeSignal } from '../../core/services/realtime-signal.service';
 import { of, throwError } from 'rxjs';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { RequestTableRow } from './request-table.component';
 import { PageEvent } from '@angular/material/paginator';
-import {
-  RequestDecisionDialogComponent,
-  RequestDecisionDialogResult
-} from './request-decision-dialog.component';
 
 describe('ManagerRequestsComponent', () => {
   let component: ManagerRequestsComponent;
@@ -20,7 +16,15 @@ describe('ManagerRequestsComponent', () => {
   let requestServiceMock: jasmine.SpyObj<RequestService>;
   let toastrMock: jasmine.SpyObj<ToastrService>;
   let realtimeSignalMock: jasmine.SpyObj<RealtimeSignalService>;
-  let mockDialog: any;
+
+  // ✅ FIX: replace `any`
+  let dialogResult: { action: string; comment?: string } | undefined;
+
+  const mockDialog = {
+    open: jasmine.createSpy().and.callFake(() => ({
+      afterClosed: () => of(dialogResult)
+    }))
+  };
 
   beforeEach(async () => {
     requestServiceMock = jasmine.createSpyObj('RequestService', [
@@ -56,11 +60,8 @@ describe('ManagerRequestsComponent', () => {
 
     realtimeSignalMock.connect.and.stub();
 
-    mockDialog = {
-      open: jasmine.createSpy().and.returnValue({
-        afterClosed: () => of({ action: 'approve', comment: 'Looks good' })
-      })
-    };
+    // default dialog result
+    dialogResult = { action: 'approve', comment: 'Looks good' };
 
     await TestBed.configureTestingModule({
       imports: [ManagerRequestsComponent],
@@ -71,12 +72,12 @@ describe('ManagerRequestsComponent', () => {
         { provide: RealtimeSignalService, useValue: realtimeSignalMock }
       ]
     })
-    .overrideComponent(ManagerRequestsComponent, {
-      add: {
-        providers: [{ provide: MatDialog, useValue: mockDialog }]
-      }
-    })
-    .compileComponents();
+      .overrideComponent(ManagerRequestsComponent, {
+        add: {
+          providers: [{ provide: MatDialog, useValue: mockDialog }]
+        }
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ManagerRequestsComponent);
     component = fixture.componentInstance;
@@ -132,7 +133,7 @@ describe('ManagerRequestsComponent', () => {
       pageIndex: 2,
       pageSize: 20,
       length: 100
-    } as unknown as PageEvent);
+    } as PageEvent);
 
     expect(requestServiceMock.getManagerRequests).toHaveBeenCalledWith(2, 20);
   });

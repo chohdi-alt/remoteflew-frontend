@@ -15,7 +15,10 @@ function isApiRequest(url: string): boolean {
 function isPublicAuthEndpoint(url: string): boolean {
   try {
     const pathname = new URL(url, 'http://localhost').pathname;
-    return pathname === '/api/auth/login' || pathname === '/api/auth/refresh' || pathname === '/api/auth/change-password' || pathname === '/api/auth/activate';
+    return pathname === '/api/auth/login' ||
+      pathname === '/api/auth/refresh' ||
+      pathname === '/api/auth/change-password' ||
+      pathname === '/api/auth/activate';
   } catch {
     const path = url.split(/[?#]/)[0];
     return (
@@ -31,9 +34,10 @@ export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
   console.warn('[INTERCEPTOR] REQUEST', req.url);
 
   if (!isApiRequest(req.url) || isPublicAuthEndpoint(req.url)) {
-    console.log('[INTERCEPTOR] FORWARDING');
+    console.warn('[INTERCEPTOR] FORWARDING');
     return next(req).pipe(
-      tap((res) => console.log('[INTERCEPTOR] RESPONSE', res)),
+      // ✅ FIX: replaced console.log
+      tap((res) => console.warn('[INTERCEPTOR] RESPONSE', res)),
       catchError((err) => {
         console.error('[INTERCEPTOR] ERROR', err);
         return throwError(() => err);
@@ -42,10 +46,12 @@ export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const auth = inject(AuthService);
+
   const forward = (requestToForward: typeof req) => {
     console.warn('[INTERCEPTOR] FORWARDING');
     return next(requestToForward).pipe(
-      tap((res) => console.log('[INTERCEPTOR] RESPONSE', res)),
+      // ✅ FIX: replaced console.log
+      tap((res) => console.warn('[INTERCEPTOR] RESPONSE', res)),
       catchError((err) => {
         console.error('[INTERCEPTOR] ERROR', err);
         return throwError(() => err);
@@ -54,7 +60,6 @@ export const bearerTokenInterceptor: HttpInterceptorFn = (req, next) => {
   };
 
   return from(auth.getToken(30)).pipe(
-    // Token acquisition fallback only; downstream HTTP errors should propagate.
     catchError(() => of(auth.getAccessToken())),
     switchMap((token) => {
       if (!token) {
