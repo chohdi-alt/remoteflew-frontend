@@ -15,16 +15,18 @@ import { AuthService } from '../../../../core/auth/auth.service';
 })
 export class InboxComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
   readonly isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map((state) => state.matches),
     shareReplay({ bufferSize: 1, refCount: true })
   );
+
   isDrawerOpen = false;
 
   constructor(
-    private readonly inboxService: InboxService,
-    private readonly breakpointObserver: BreakpointObserver
-  ) {}
+    private readonly inboxService: InboxService
+  ) { }
 
   private allMessages: InboxMessage[] = [];
   messages: InboxMessage[] = [];
