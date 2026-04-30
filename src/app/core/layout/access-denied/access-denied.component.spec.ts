@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { AccessDeniedComponent } from './access-denied.component';
 
@@ -12,7 +12,7 @@ describe('AccessDeniedComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AccessDeniedComponent],
       providers: [
-        { provide: Router, useValue: { navigate: () => Promise.resolve(true) } },
+        provideRouter([]),
         { provide: Location, useValue: { back: () => {} } }
       ]
     })

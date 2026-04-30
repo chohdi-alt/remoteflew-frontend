@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
 import { NavbarComponent } from './navbar.component';
@@ -20,13 +20,7 @@ describe('NavbarComponent', () => {
             logout: () => Promise.resolve()
           }
         },
-        {
-          provide: Router,
-          useValue: {
-            navigateByUrl: () => Promise.resolve(true),
-            navigate: () => Promise.resolve(true)
-          }
-        }
+        provideRouter([]),
       ]
     })
     .compileComponents();

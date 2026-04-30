@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
 
 import { AppRole } from '../../models/auth.models';
@@ -75,12 +75,7 @@ describe('AuthService', () => {
           provide: CurrentUserService,
           useValue: currentUserServiceMock
         },
-        {
-          provide: Router,
-          useValue: {
-            navigate: () => Promise.resolve(true)
-          }
-        }
+        provideRouter([]),
       ]
     });
     service = TestBed.inject(AuthService);
