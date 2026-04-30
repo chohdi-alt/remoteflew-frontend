@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { AccessDeniedComponent } from './access-denied.component';
 
@@ -13,10 +13,10 @@ describe('AccessDeniedComponent', () => {
       imports: [AccessDeniedComponent],
       providers: [
         provideRouter([]),
-        { provide: Location, useValue: { back: () => {} } }
+        { provide: Location, useValue: { back: () => { } } }
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(AccessDeniedComponent);
     component = fixture.componentInstance;

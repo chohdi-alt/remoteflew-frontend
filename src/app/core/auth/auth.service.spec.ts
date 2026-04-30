@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
 
 import { AppRole } from '../../models/auth.models';
