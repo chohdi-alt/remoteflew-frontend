@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 
 import { InboxComponent } from './inbox.component';
@@ -28,6 +29,7 @@ describe('InboxComponent', () => {
       imports: [InboxComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         { provide: InboxService, useValue: inboxServiceMock }
       ]
     }).compileComponents();

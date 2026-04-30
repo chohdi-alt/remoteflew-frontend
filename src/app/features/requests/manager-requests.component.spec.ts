@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { ManagerRequestsComponent } from './manager-requests.component';
 import { RequestService } from '../../core/services/request.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -69,6 +70,7 @@ describe('ManagerRequestsComponent', () => {
       providers: [
         provideNoopAnimations(),
         provideRouter([]),
+        provideHttpClient(),
         { provide: RequestService, useValue: requestServiceMock },
         { provide: ToastrService, useValue: toastrMock },
         { provide: RealtimeSignalService, useValue: realtimeSignalMock }

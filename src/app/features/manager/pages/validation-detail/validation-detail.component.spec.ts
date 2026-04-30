@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, ActivatedRoute } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 
 import { ValidationDetailComponent } from './validation-detail.component';
@@ -13,6 +14,7 @@ describe('ValidationDetailComponent', () => {
       imports: [ValidationDetailComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         {
           provide: ActivatedRoute,
           useValue: {
