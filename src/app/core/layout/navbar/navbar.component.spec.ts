@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
 import { NavbarComponent } from './navbar.component';
@@ -23,7 +23,7 @@ describe('NavbarComponent', () => {
         provideRouter([]),
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(NavbarComponent);
     component = fixture.componentInstance;
