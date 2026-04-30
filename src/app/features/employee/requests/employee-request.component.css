@@ -173,6 +173,49 @@
   padding-top: 0.25rem;
 }
 
+.request-shell--mobile {
+  justify-content: stretch;
+}
+
+.request-card--mobile {
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.card-header--mobile {
+  align-items: stretch;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.account-chip--mobile {
+  min-width: 0;
+}
+
+.request-form--mobile {
+  gap: 1.1rem;
+  padding: 1rem;
+}
+
+.upload-panel--mobile {
+  gap: 0.7rem;
+}
+
+.upload-meta--mobile {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.action-row--mobile {
+  display: grid;
+  gap: 0.7rem;
+  justify-content: stretch;
+}
+
+.action-row--mobile button {
+  width: 100%;
+}
+
 @media (max-width: 720px) {
   .card-header {
     align-items: stretch;
@@ -193,6 +236,17 @@
 
   .action-row button {
     flex: 1 1 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .request-form--mobile .date-field,
+  .request-form--mobile .reason-field {
+    width: 100%;
+  }
+
+  .request-form--mobile .mat-mdc-form-field {
+    width: 100%;
   }
 }
 

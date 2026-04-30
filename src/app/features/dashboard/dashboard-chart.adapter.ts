@@ -21,10 +21,11 @@ export interface DashboardLineChartModel {
 
 type PendingWarningRole = 'EMPLOYEE' | 'MANAGER' | 'HR' | 'ADMIN';
 
-const STATUS_ORDER: RequestStatus[] = ['SUBMITTED', 'APPROVED', 'REJECTED', 'SPECIAL'];
+const STATUS_ORDER: RequestStatus[] = ['SUBMITTED', 'MANAGER_APPROVED', 'APPROVED', 'REJECTED', 'SPECIAL'];
 
 const STATUS_LABELS: Record<RequestStatus, string> = {
   SUBMITTED: 'Submitted',
+  MANAGER_APPROVED: 'Manager Approved',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
   SPECIAL: 'Special'

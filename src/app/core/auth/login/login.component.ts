@@ -1,15 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { BreakpointObserver, Breakpoints, LayoutModule } from '@angular/cdk/layout';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, map, shareReplay } from 'rxjs';
 import { AppRole, AuthError, AuthErrorType } from '../../../models/auth.models';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LayoutModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
@@ -19,11 +20,16 @@ export class LoginComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   readonly form = this.fb.nonNullable.group({
     username: ['', [Validators.required]],
     password: ['', [Validators.required]]
   });
+  readonly isHandset$ = this.breakpointObserver.observe([Breakpoints.Handset]).pipe(
+    map((state) => state.matches),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   isSubmitting = false;
   errorMessage = '';
@@ -177,4 +183,3 @@ export class LoginComponent implements OnInit, OnDestroy {
     globalThis.sessionStorage.removeItem(LoginComponent.PASSWORD_UPDATE_USERNAME_KEY);
   }
 }
-

@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+
+.history-mobile {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.history-mobile__header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.history-mobile__header p {
+  color: #64748b;
+  margin: 0.2rem 0 0;
+}
+
+.history-mobile__list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.history-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem;
+}
+
+.history-card__top {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.history-card__top h3 {
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.history-card__status {
+  background: #eff6ff;
+  border-radius: 999px;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+}
+
+.history-card p {
+  color: #334155;
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.history-card__actions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.history-card__actions button {
+  background: #1d4ed8;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .history-mobile {
+    padding: 0.8rem;
+  }
+}

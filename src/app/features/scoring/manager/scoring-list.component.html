@@ -1,45 +1,161 @@
+<ng-container *ngIf="(isHandset$ | async) === true">
+  <header class="manager-mobile-header">
+    <button type="button" class="manager-mobile-header__menu" (click)="toggleDrawer()" aria-label="Open manager navigation">
+      &#9776;
+    </button>
+    <h2>Manager Scoring</h2>
+  </header>
+
+  <div class="manager-nav-overlay" *ngIf="isDrawerOpen" (click)="closeDrawer()">
+    <aside class="manager-sidenav open" (click)="$event.stopPropagation()">
+      <button type="button" class="manager-sidenav__brand" routerLink="/manager/dashboard" (click)="closeDrawer()">RemoteFlow</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/dashboard" (click)="closeDrawer()">Dashboard</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/requests" (click)="closeDrawer()">Requests</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/scoring" (click)="closeDrawer()">Scoring</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/inbox" (click)="closeDrawer()">Inbox</button>
+      <button type="button" class="manager-sidenav__item manager-sidenav__item--logout" (click)="logout()">Logout</button>
+    </aside>
+  </div>
+</ng-container>
+
 <app-dashboard-layout title="Manager Scoring" subtitle="Score requests after telework completion">
   <section class="wrapper">
-    <header class="header-row">
-      <h2>Pending requests to score</h2>
-      <button type="button" (click)="loadPendingScores()" [disabled]="loading()">Refresh</button>
-    </header>
+    <ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+      <header class="header-row">
+        <h2>Pending requests to score</h2>
+        <button type="button" (click)="loadPendingScores()" [disabled]="loading()">Refresh</button>
+      </header>
 
-    @if (loading()) {
-    <p class="state">Loading scoring requests...</p>
-    } @else if (pendingScores().length === 0) {
-    <p class="state">No scoring requests are pending for your teams.</p>
-    } @else {
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Request</th>
-            <th>Employee</th>
-            <th>Dates</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      @if (loading()) {
+      <p class="state">Loading scoring requests...</p>
+      } @else if (pendingScores().length === 0) {
+      <p class="state">No scoring requests are pending for your teams.</p>
+      } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Employee</th>
+              <th>Dates</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of pendingScores(); track row.scoreId) {
+            <tr [class.active]="selectedScore()?.scoreId === row.scoreId">
+              <td>#{{ row.requestId }}</td>
+              <td>{{ row.employeeId }}</td>
+              <td>{{ row.startDate | date:'dd/MM/yyyy' }} - {{ row.endDate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ row.status }}</td>
+              <td>
+                <button type="button" (click)="openModal(row)">Score</button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </ng-container>
+
+    <ng-template #mobileView>
+      <section class="mobile-scoring">
+        <header class="mobile-header">
+          <h2>Pending requests to score</h2>
+          <button type="button" (click)="loadPendingScores()" [disabled]="loading()">Refresh</button>
+        </header>
+
+        @if (loading()) {
+        <p class="state">Loading scoring requests...</p>
+        } @else if (pendingScores().length === 0) {
+        <p class="state">No scoring requests are pending for your teams.</p>
+        } @else {
+        <div class="mobile-card-list">
           @for (row of pendingScores(); track row.scoreId) {
-          <tr [class.active]="selectedScore()?.scoreId === row.scoreId">
-            <td>#{{ row.requestId }}</td>
-            <td>{{ row.employeeId }}</td>
-            <td>{{ row.startDate | date:'dd/MM/yyyy' }} - {{ row.endDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ row.status }}</td>
-            <td>
-              <button type="button" (click)="selectScore(row)">Score</button>
-            </td>
-          </tr>
+          <article class="mobile-score-card" [class.active]="selectedScore()?.scoreId === row.scoreId">
+            <p class="mobile-score-card__title">Request #{{ row.requestId }}</p>
+            <p class="mobile-score-card__line"><strong>Employee:</strong> {{ row.employeeId }}</p>
+            <p class="mobile-score-card__line">
+              <strong>Dates:</strong> {{ row.startDate | date:'dd/MM/yyyy' }} - {{ row.endDate | date:'dd/MM/yyyy' }}
+            </p>
+            <p class="mobile-score-card__line"><strong>Status:</strong> {{ row.status }}</p>
+            <button type="button" (click)="openModal(row)">Score</button>
+          </article>
           }
-        </tbody>
-      </table>
-    </div>
-    }
-
-    <app-scoring-form [score]="selectedScore()" [submitting]="submitting()" (submitScore)="submitScore($event)"
-      (cancelScoring)="clearSelection()">
-    </app-scoring-form>
+        </div>
+        }
+      </section>
+    </ng-template>
   </section>
 </app-dashboard-layout>
+
+@if (modalOpen()) {
+  <div class="score-modal-overlay" (click)="!submitting() && closeModal()">
+    <section class="score-modal" role="dialog" aria-modal="true" aria-labelledby="score-modal-title" (click)="$event.stopPropagation()">
+      <header class="score-modal__header">
+        <h3 id="score-modal-title">Score Request #{{ selectedScore()?.requestId }}</h3>
+        <button type="button" class="score-modal__close" (click)="closeModal()" [disabled]="submitting()">×</button>
+      </header>
+
+      <form [formGroup]="scoreModalForm" (ngSubmit)="submitScore()" class="score-modal__form">
+        <div class="score-modal__grid">
+          <label>
+            <span>Attendance</span>
+            <input type="number" formControlName="attendance" min="0" max="100" />
+          </label>
+          <label>
+            <span>Tasks</span>
+            <input type="number" formControlName="tasks" min="0" max="100" />
+          </label>
+          <label>
+            <span>Punctuality</span>
+            <input type="number" formControlName="punctuality" min="0" max="100" />
+          </label>
+          <label>
+            <span>Behavior</span>
+            <input type="number" formControlName="behavior" min="0" max="100" />
+          </label>
+        </div>
+
+        <p class="score-modal__total">
+          Total score: <strong>{{ computedTotal === null ? '--' : (computedTotal | number:'1.2-2') }}</strong>
+        </p>
+
+        <label>
+          <span>Manager Comment (required)</span>
+          <textarea #managerCommentField rows="4" formControlName="managerComment"></textarea>
+        </label>
+        <p class="score-modal__error"
+          *ngIf="scoreModalForm.controls.managerComment.touched && scoreModalForm.controls.managerComment.hasError('required')">
+          Manager comment is required.
+        </p>
+
+        <label>
+          <span>Decision note</span>
+          <textarea rows="3" formControlName="decisionNote"></textarea>
+        </label>
+
+        <label>
+          <span>Risk level</span>
+          <select formControlName="riskLevel">
+            <option *ngFor="let risk of riskLevels" [value]="risk.value">{{ risk.label }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Recommendation</span>
+          <textarea rows="3" formControlName="recommendation"></textarea>
+        </label>
+
+        <div class="score-modal__actions">
+          <button type="button" class="ghost" (click)="closeModal()" [disabled]="submitting()">Cancel</button>
+          <button type="submit" [disabled]="submitting() || scoreModalForm.invalid">
+            {{ submitting() ? 'Saving...' : 'Confirm / Save' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

@@ -47,3 +47,79 @@
   min-width: 640px;
   width: 100%;
 }
+
+.mobile-filter-row {
+  grid-template-columns: 1fr;
+}
+
+.mobile-kpi-stack {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+.mobile-chart-stack {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+.chart-mobile {
+  min-width: 0;
+}
+
+.mobile-request-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mobile-list-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.mobile-list-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mobile-request-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem;
+}
+
+.mobile-request-card p {
+  margin: 0;
+  color: #374151;
+  font-size: 0.88rem;
+}
+
+.mobile-request-top {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mobile-empty {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .chart-mobile ::ng-deep .chart-card {
+    min-height: 200px;
+    max-height: 220px;
+    overflow: hidden;
+  }
+
+  .chart-mobile ::ng-deep .apx-chart {
+    display: block;
+    max-height: 190px;
+  }
+}

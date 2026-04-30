@@ -1,1 +1,38 @@
-<p>my-requests works!</p>
+<ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+  <p>my-requests works!</p>
+</ng-container>
+
+<ng-template #mobileView>
+  <section class="history-mobile">
+    <header class="history-mobile__header">
+      <h2>My Requests</h2>
+      <p>Recent telework requests</p>
+    </header>
+
+    <div class="history-mobile__list">
+      @if (requests.length === 0) {
+        <article class="history-card">
+          <div class="history-card__top">
+            <h3>No request history yet</h3>
+            <span class="history-card__status">EMPTY</span>
+          </div>
+          <p>Request title, date, and status cards will appear here on mobile.</p>
+        </article>
+      } @else {
+        @for (request of requests; track request.id) {
+          <article class="history-card">
+            <div class="history-card__top">
+              <h3>{{ request.title }}</h3>
+              <span class="history-card__status">{{ request.status }}</span>
+            </div>
+            <p><strong>Date:</strong> {{ request.date | date: 'mediumDate' }}</p>
+            <div class="history-card__actions">
+              <button type="button">View</button>
+              <button type="button">Details</button>
+            </div>
+          </article>
+        }
+      }
+    </div>
+  </section>
+</ng-template>

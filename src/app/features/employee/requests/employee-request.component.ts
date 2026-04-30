@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { BreakpointObserver, Breakpoints, LayoutModule } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ToastrService } from 'ngx-toastr';
-import { distinctUntilChanged, finalize } from 'rxjs';
+import { distinctUntilChanged, finalize, map, shareReplay } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { DashboardLayoutComponent } from '../../dashboard/shared/dashboard-layout.component';
 import { CreateTeleworkDTO, TeleworkQuotaResponse, TeleworkService } from '../services/telework.service';
@@ -30,6 +31,7 @@ const dateRangeValidator: ValidatorFn = (control: AbstractControl): ValidationEr
   standalone: true,
   imports: [
     CommonModule,
+    LayoutModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
@@ -49,10 +51,15 @@ export class EmployeeRequestComponent implements OnInit {
   private readonly teleworkService = inject(TeleworkService);
   private readonly toastr = inject(ToastrService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   readonly minSelectableDate = this.stripTime(new Date());
+  readonly isHandset$ = this.breakpointObserver.observe([Breakpoints.Handset]).pipe(
+    map((state) => state.matches),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   readonly requestForm = this.fb.group(
     {

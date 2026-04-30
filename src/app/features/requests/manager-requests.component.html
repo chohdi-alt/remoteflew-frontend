@@ -1,3 +1,23 @@
+<ng-container *ngIf="(isHandset$ | async) === true">
+  <header class="manager-mobile-header">
+    <button type="button" class="manager-mobile-header__menu" (click)="toggleDrawer()" aria-label="Open manager navigation">
+      &#9776;
+    </button>
+    <h2>Manager Requests</h2>
+  </header>
+
+  <div class="manager-nav-overlay" *ngIf="isDrawerOpen" (click)="closeDrawer()">
+    <aside class="manager-sidenav open" (click)="$event.stopPropagation()">
+      <button type="button" class="manager-sidenav__brand" routerLink="/manager/dashboard" (click)="closeDrawer()">RemoteFlow</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/dashboard" (click)="closeDrawer()">Dashboard</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/requests" (click)="closeDrawer()">Requests</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/scoring" (click)="closeDrawer()">Scoring</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/inbox" (click)="closeDrawer()">Inbox</button>
+      <button type="button" class="manager-sidenav__item manager-sidenav__item--logout" (click)="logout()">Logout</button>
+    </aside>
+  </div>
+</ng-container>
+
 <app-dashboard-layout
   title="Manager Requests"
   subtitle="Review pending manager validation tasks and approve or reject with an optional comment.">
@@ -9,16 +29,59 @@
   </section>
 
   @if (viewModel$ | async; as vm) {
-    <app-request-table
-      [requests]="vm.requests"
-      [total]="vm.total"
-      [pageIndex]="vm.pageIndex"
-      [pageSize]="vm.pageSize"
-      [pageSizeOptions]="pageSizeOptions"
-      [loading]="(loading$ | async) ?? false"
-      (pageChange)="onPageChange($event)"
-      (approve)="onApprove($event)"
-      (reject)="onReject($event)">
-    </app-request-table>
+    <ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+      <app-request-table
+        [requests]="vm.requests"
+        [total]="vm.total"
+        [pageIndex]="vm.pageIndex"
+        [pageSize]="vm.pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        [loading]="(loading$ | async) ?? false"
+        (pageChange)="onPageChange($event)"
+        (approve)="onApprove($event)"
+        (reject)="onReject($event)">
+      </app-request-table>
+    </ng-container>
+
+    <ng-template #mobileView>
+      <section class="mobile-requests">
+        <p class="mobile-state" *ngIf="(loading$ | async) === true">Loading requests...</p>
+
+        <article class="mobile-request-card" *ngFor="let row of vm.requests">
+          <div class="mobile-request-card__top">
+            <div>
+              <h3 class="mobile-request-card__title">Request #{{ row.requestId ?? '--' }}</h3>
+              <p class="mobile-request-card__meta">{{ row.employeeName }}</p>
+              <p class="mobile-request-card__meta">
+                {{ row.createdAt ? (row.createdAt | date:'mediumDate') : 'Date unavailable' }}
+              </p>
+            </div>
+            <span [class]="toStatusClass(row.status)">{{ row.status }}</span>
+          </div>
+
+          <div class="mobile-request-card__info">
+            <p>
+              <strong>Period:</strong>
+              {{ row.startDate ? (row.startDate | date:'dd/MM/yyyy') : '--' }} -
+              {{ row.endDate ? (row.endDate | date:'dd/MM/yyyy') : '--' }}
+            </p>
+            <p><strong>Reason:</strong> {{ row.justificationReason || row.reason || 'Not provided' }}</p>
+          </div>
+
+          <div class="mobile-request-card__actions">
+            <button mat-stroked-button type="button" color="primary" [disabled]="!row.requestId" (click)="onApprove(row)">
+              Approve
+            </button>
+            <button mat-stroked-button type="button" color="warn" [disabled]="!row.requestId" (click)="onReject(row)">
+              Reject
+            </button>
+          </div>
+        </article>
+
+        <p class="mobile-state" *ngIf="(loading$ | async) === false && vm.requests.length === 0">
+          No pending requests found.
+        </p>
+      </section>
+    </ng-template>
   }
 </app-dashboard-layout>

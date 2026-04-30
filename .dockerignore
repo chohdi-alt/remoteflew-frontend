@@ -1,0 +1,29 @@
+# Dependencies and local caches (largest context contributors)
+node_modules/
+.angular/
+
+# Build/test outputs
+dist/
+coverage/
+
+# VCS metadata
+.git/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Temp/cache directories
+tmp/
+temp/
+.cache/
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# OS artifacts
+.DS_Store
+Thumbs.db

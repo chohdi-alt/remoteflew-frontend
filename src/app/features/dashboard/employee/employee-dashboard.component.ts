@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { BreakpointObserver, Breakpoints, LayoutModule } from '@angular/cdk/layout';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -36,6 +37,7 @@ interface DashboardFilterState {
   standalone: true,
   imports: [
     CommonModule,
+    LayoutModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
@@ -54,10 +56,15 @@ export class EmployeeRoleDashboardComponent {
   private readonly dashboardService = inject(DashboardService);
   private readonly realtimeSignalService = inject(RealtimeSignalService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   readonly fromControl = new FormControl<string>('', { nonNullable: true });
   readonly toControl = new FormControl<string>('', { nonNullable: true });
   readonly recentColumns: string[] = ['requestId', 'startDate', 'endDate', 'status', 'specialCase', 'managerComment', 'hrComment'];
+  readonly isHandset$ = this.breakpointObserver.observe([Breakpoints.Handset]).pipe(
+    map((state) => state.matches),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
   private readonly refresh$ = new BehaviorSubject<number>(0);
 
   constructor() {

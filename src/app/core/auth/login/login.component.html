@@ -1,23 +1,51 @@
-<div class="login-page">
-  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <h1>RemoteFlow Login</h1>
+<ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+  <div class="login-page">
+    <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h1>RemoteFlow Login</h1>
 
-    <label>
-      <span>Username</span>
-      <input type="text" formControlName="username" autocomplete="username" />
-    </label>
+      <label>
+        <span>Username</span>
+        <input type="text" formControlName="username" autocomplete="username" />
+      </label>
 
-    <label>
-      <span>Password</span>
-      <input type="password" formControlName="password" autocomplete="current-password" />
-    </label>
+      <label>
+        <span>Password</span>
+        <input type="password" formControlName="password" autocomplete="current-password" />
+      </label>
 
-    @if (errorMessage) {
-      <p class="error">{{ errorMessage }}</p>
-    }
+      @if (errorMessage) {
+        <p class="error">{{ errorMessage }}</p>
+      }
 
-    <button type="submit" [disabled]="isSubmitting || form.invalid || (retryAfterSeconds && retryAfterSeconds > 0)">
-      {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
-    </button>
-  </form>
-</div>
+      <button type="submit" [disabled]="isSubmitting || form.invalid || (retryAfterSeconds && retryAfterSeconds > 0)">
+        {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
+      </button>
+    </form>
+  </div>
+</ng-container>
+
+<ng-template #mobileView>
+  <div class="login-page login-page--mobile">
+    <form class="login-card login-card--mobile" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h1>RemoteFlow Login</h1>
+
+      <label>
+        <span>Username</span>
+        <input type="text" formControlName="username" autocomplete="username" autofocus />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input type="password" formControlName="password" autocomplete="current-password" />
+      </label>
+
+      @if (errorMessage) {
+        <p class="error">{{ errorMessage }}</p>
+      }
+
+      <button type="submit" [disabled]="isSubmitting || form.invalid || (retryAfterSeconds && retryAfterSeconds > 0)">
+        {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
+      </button>
+    </form>
+  </div>
+</ng-template>

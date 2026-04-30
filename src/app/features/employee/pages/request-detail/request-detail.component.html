@@ -1,1 +1,30 @@
-<p>request-detail works!</p>
+<ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+  <p>request-detail works!</p>
+</ng-container>
+
+<ng-template #mobileView>
+  <section class="detail-mobile">
+    <header class="detail-mobile__header">
+      <h2>Request #{{ requestDetail.requestId }}</h2>
+      <span class="detail-mobile__status">{{ requestDetail.status }}</span>
+    </header>
+
+    <article class="detail-card">
+      <h3>Request Info</h3>
+      <p><strong>Employee:</strong> {{ requestDetail.employee }}</p>
+      <p><strong>Start:</strong> {{ requestDetail.startDate ? (requestDetail.startDate | date: 'mediumDate') : '--' }}</p>
+      <p><strong>End:</strong> {{ requestDetail.endDate ? (requestDetail.endDate | date: 'mediumDate') : '--' }}</p>
+    </article>
+
+    <article class="detail-card">
+      <h3>Reason</h3>
+      <p>{{ requestDetail.reason }}</p>
+    </article>
+
+    <article class="detail-card">
+      <h3>Validation Notes</h3>
+      <p><strong>Manager:</strong> {{ requestDetail.managerComment }}</p>
+      <p><strong>HR:</strong> {{ requestDetail.hrComment }}</p>
+    </article>
+  </section>
+</ng-template>

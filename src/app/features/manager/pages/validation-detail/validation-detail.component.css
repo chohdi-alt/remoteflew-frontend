@@ -1,0 +1,144 @@
+@media (max-width: 768px) {
+  ::ng-deep app-navbar,
+  ::ng-deep .navbar {
+    display: none !important;
+  }
+
+  :host {
+    display: block;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  .manager-mobile-header {
+    align-items: center;
+    background: #0f172a;
+    border-radius: 10px;
+    color: #f8fafc;
+    display: flex;
+    gap: 0.65rem;
+    height: 56px;
+    margin-bottom: 0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  .manager-mobile-header h2 {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .manager-mobile-header__menu {
+    align-items: center;
+    background: #1e293b;
+    border: 0;
+    border-radius: 8px;
+    color: #f8fafc;
+    display: inline-flex;
+    font-size: 1.2rem;
+    height: 40px;
+    justify-content: center;
+    min-width: 40px;
+  }
+
+  .manager-nav-overlay {
+    background: rgba(2, 6, 23, 0.45);
+    inset: 0;
+    position: fixed;
+    z-index: 1200;
+  }
+
+  .manager-sidenav {
+    background: #0f172a;
+    box-shadow: 0 20px 44px rgba(2, 6, 23, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    height: 100%;
+    left: 0;
+    max-width: 340px;
+    padding: 1rem 0.8rem;
+    position: fixed;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 80%;
+  }
+
+  .manager-sidenav.open {
+    transform: translateX(0);
+  }
+
+  .manager-sidenav__brand {
+    background: transparent;
+    border: 0;
+    color: #f8fafc;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    text-align: left;
+  }
+
+  .manager-sidenav__item {
+    background: #1e293b;
+    border: 0;
+    border-radius: 10px;
+    color: #e2e8f0;
+    font: inherit;
+    font-weight: 600;
+    min-height: 48px;
+    padding: 0.7rem 0.8rem;
+    text-align: left;
+  }
+
+  .manager-sidenav__item--logout {
+    background: #b91c1c;
+    color: #fef2f2;
+    margin-top: 0.35rem;
+  }
+
+  .mobile-validation {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .mobile-validation__card {
+    background: #ffffff;
+    border: 1px solid #dbe2eb;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.9rem;
+  }
+
+  .mobile-validation__card h3,
+  .mobile-validation__card p {
+    margin: 0;
+  }
+
+  .mobile-validation__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-top: 0.35rem;
+  }
+
+  .mobile-validation__actions button {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+    font: inherit;
+    padding: 0.55rem 0.65rem;
+    width: 100%;
+  }
+
+  .mobile-validation__card textarea {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+    padding: 0.6rem;
+    resize: vertical;
+    width: 100%;
+  }
+}

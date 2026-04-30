@@ -1,4 +1,4 @@
-export type RequestStatus = 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'SPECIAL';
+export type RequestStatus = 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'SPECIAL' | 'MANAGER_APPROVED';
 
 export interface TeleworkStatusDTO {
   requestId: number;
@@ -7,6 +7,10 @@ export interface TeleworkStatusDTO {
   status: RequestStatus;
   decisionComment: string | null;
   specialCase: boolean;
+  justificationReason?: string | null;
+  justificatifFileId?: string | null;
+  managerComment?: string | null;
+  hrComment?: string | null;
 }
 
 export interface MonthlyCountDTO {

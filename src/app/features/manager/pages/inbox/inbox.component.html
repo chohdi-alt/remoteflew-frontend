@@ -1,48 +1,118 @@
-<section class="inbox">
-  <header class="inbox__header">
-    <h2 i18n="@@inboxTitle">Inbox</h2>
-    <div class="inbox__filters">
-      <label>
-        <span i18n="@@inboxSearchLabel">Search</span>
-        <input
-          type="search"
-          [value]="searchQuery"
-          (input)="onSearchChange($any($event.target).value)"
-          placeholder="Search messages"
-          i18n-placeholder="@@inboxSearchPlaceholder" />
-      </label>
-      <label>
-        <span i18n="@@inboxStatusLabel">Status</span>
-        <select [value]="statusFilter" (change)="onStatusChange($any($event.target).value)">
-          <option value="all" i18n="@@inboxStatusAll">All</option>
-          <option value="unread" i18n="@@inboxStatusUnread">Unread</option>
-          <option value="read" i18n="@@inboxStatusRead">Read</option>
-        </select>
-      </label>
-    </div>
+<ng-container *ngIf="(isHandset$ | async) === true">
+  <header class="manager-mobile-header">
+    <button type="button" class="manager-mobile-header__menu" (click)="toggleDrawer()" aria-label="Open manager navigation">
+      &#9776;
+    </button>
+    <h2>Manager Inbox</h2>
   </header>
 
-  <div class="inbox__list">
-    <div *ngIf="messages.length === 0" class="inbox__empty" i18n="@@inboxEmpty">No messages found.</div>
-    <ul *ngIf="messages.length > 0">
-      <li *ngFor="let message of messages" [class.unread]="!message.read">
-        <label class="select">
+  <div class="manager-nav-overlay" *ngIf="isDrawerOpen" (click)="closeDrawer()">
+    <aside class="manager-sidenav open" (click)="$event.stopPropagation()">
+      <button type="button" class="manager-sidenav__brand" routerLink="/manager/dashboard" (click)="closeDrawer()">RemoteFlow</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/dashboard" (click)="closeDrawer()">Dashboard</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/requests" (click)="closeDrawer()">Requests</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/scoring" (click)="closeDrawer()">Scoring</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/inbox" (click)="closeDrawer()">Inbox</button>
+      <button type="button" class="manager-sidenav__item manager-sidenav__item--logout" (click)="logout()">Logout</button>
+    </aside>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+  <section class="inbox">
+    <header class="inbox__header">
+      <h2 i18n="@@inboxTitle">Inbox</h2>
+      <div class="inbox__filters">
+        <label>
+          <span i18n="@@inboxSearchLabel">Search</span>
           <input
-            type="checkbox"
-            [checked]="message.selected"
-            (change)="toggleSelect(message)"
-            aria-label="Select message"
-            i18n-aria-label="@@inboxSelectMessage" />
+            type="search"
+            [value]="searchQuery"
+            (input)="onSearchInput($event)"
+            placeholder="Search messages"
+            i18n-placeholder="@@inboxSearchPlaceholder" />
         </label>
-        <button type="button" class="message" (click)="openMessage(message)">
-          <div class="message__top">
-            <span class="sender">{{ message.sender }}</span>
-            <span class="date">{{ message.receivedAt }}</span>
+        <label>
+          <span i18n="@@inboxStatusLabel">Status</span>
+          <select [value]="statusFilter" (change)="onStatusSelect($event)">
+            <option value="all" i18n="@@inboxStatusAll">All</option>
+            <option value="unread" i18n="@@inboxStatusUnread">Unread</option>
+            <option value="read" i18n="@@inboxStatusRead">Read</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <div class="inbox__list">
+      <div *ngIf="messages.length === 0" class="inbox__empty" i18n="@@inboxEmpty">No messages found.</div>
+      <ul *ngIf="messages.length > 0">
+        <li *ngFor="let message of messages" [class.unread]="!message.read">
+          <label class="select">
+            <input
+              type="checkbox"
+              [checked]="message.selected"
+              (change)="toggleSelect(message)"
+              aria-label="Select message"
+              i18n-aria-label="@@inboxSelectMessage" />
+          </label>
+          <button type="button" class="message" (click)="openMessage(message)">
+            <div class="message__top">
+              <span class="sender">{{ message.sender }}</span>
+              <span class="date">{{ message.receivedAt }}</span>
+            </div>
+            <div class="message__subject">{{ message.subject }}</div>
+            <div class="message__preview">{{ message.preview }}</div>
+          </button>
+          <div class="message__actions">
+            <button type="button" *ngIf="!message.read" (click)="markAsRead(message)" i18n="@@inboxMarkRead">
+              Mark as read
+            </button>
+            <button type="button" *ngIf="message.read" (click)="markAsUnread(message)" i18n="@@inboxMarkUnread">
+              Mark as unread
+            </button>
           </div>
-          <div class="message__subject">{{ message.subject }}</div>
-          <div class="message__preview">{{ message.preview }}</div>
+        </li>
+      </ul>
+    </div>
+  </section>
+</ng-container>
+
+<ng-template #mobileView>
+  <section class="inbox-mobile">
+    <header class="inbox-mobile__header">
+      <h2 i18n="@@inboxTitle">Inbox</h2>
+      <div class="inbox-mobile__filters">
+        <label>
+          <span i18n="@@inboxSearchLabel">Search</span>
+          <input
+            type="search"
+            [value]="searchQuery"
+            (input)="onSearchInput($event)"
+            placeholder="Search messages"
+            i18n-placeholder="@@inboxSearchPlaceholder" />
+        </label>
+        <label>
+          <span i18n="@@inboxStatusLabel">Status</span>
+          <select [value]="statusFilter" (change)="onStatusSelect($event)">
+            <option value="all" i18n="@@inboxStatusAll">All</option>
+            <option value="unread" i18n="@@inboxStatusUnread">Unread</option>
+            <option value="read" i18n="@@inboxStatusRead">Read</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <div *ngIf="messages.length === 0" class="inbox-mobile__empty" i18n="@@inboxEmpty">No messages found.</div>
+
+    <div class="inbox-mobile__cards" *ngIf="messages.length > 0">
+      <article *ngFor="let message of messages" class="inbox-mobile__card" [class.unread]="!message.read">
+        <button type="button" class="inbox-mobile__message" (click)="openMessage(message)">
+          <p class="inbox-mobile__sender">{{ message.sender }}</p>
+          <p class="inbox-mobile__subject">{{ message.subject }}</p>
+          <p class="inbox-mobile__date">{{ message.receivedAt }}</p>
         </button>
-        <div class="message__actions">
+
+        <div class="inbox-mobile__actions">
           <button type="button" *ngIf="!message.read" (click)="markAsRead(message)" i18n="@@inboxMarkRead">
             Mark as read
           </button>
@@ -50,7 +120,7 @@
             Mark as unread
           </button>
         </div>
-      </li>
-    </ul>
-  </div>
-</section>
+      </article>
+    </div>
+  </section>
+</ng-template>

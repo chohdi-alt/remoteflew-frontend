@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +24,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DestroyRef } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/auth/auth.service';
 
 interface ManagerDashboardViewModel {
   raw: ManagerDashboardDTO;
@@ -43,6 +46,7 @@ interface DashboardFilterState {
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -58,11 +62,18 @@ interface DashboardFilterState {
 export class ManagerDashboardComponent {
   private readonly dashboardService = inject(DashboardService);
   private readonly realtimeSignalService = inject(RealtimeSignalService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly fromControl = new FormControl<string>('', { nonNullable: true });
   readonly toControl = new FormControl<string>('', { nonNullable: true });
   private readonly refresh$ = new BehaviorSubject<number>(0);
+  readonly isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+    map((state) => state.matches),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+  isDrawerOpen = false;
 
   constructor() {
     this.realtimeSignalService.connect();
@@ -119,6 +130,24 @@ export class ManagerDashboardComponent {
   clearFilters(): void {
     this.fromControl.setValue('');
     this.toControl.setValue('');
+  }
+
+  toggleDrawer(): void {
+    this.isDrawerOpen = !this.isDrawerOpen;
+  }
+
+  closeDrawer(): void {
+    this.isDrawerOpen = false;
+  }
+
+  logout(): void {
+    this.closeDrawer();
+    void this.authService.logout();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.closeDrawer();
   }
 
   private toFilterDate(value: string): string | undefined {

@@ -1,100 +1,179 @@
-<app-dashboard-layout
-  title="Employee Dashboard"
-  subtitle="Personal telework metrics and recent request activity. Note: Averages and pending counts are calculated on full dataset and are not date-filtered.">
-  <section class="filter-row">
-    <mat-form-field appearance="outline">
-      <mat-label>From</mat-label>
-      <input matInput type="date" [formControl]="fromControl" />
-    </mat-form-field>
+<ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+  <app-dashboard-layout
+    title="Employee Dashboard"
+    subtitle="Personal telework metrics and recent request activity. Note: Averages and pending counts are calculated on full dataset and are not date-filtered.">
+    <section class="filter-row">
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" [formControl]="fromControl" />
+      </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>To</mat-label>
-      <input matInput type="date" [formControl]="toControl" />
-    </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" [formControl]="toControl" />
+      </mat-form-field>
 
-    <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
-  </section>
-
-  @if (dateRangeError$ | async; as error) {
-    <p class="filter-error">{{ error }}</p>
-  }
-
-  @if (dashboardData$ | async; as vm) {
-    <section class="kpi-grid">
-      <app-kpi-card title="Submitted" icon="description" color="primary" [value]="vm.raw.myTotalsByStatus.SUBMITTED"></app-kpi-card>
-      <app-kpi-card title="Approved" icon="check_circle" color="success" [value]="vm.raw.myTotalsByStatus.APPROVED"></app-kpi-card>
-      <app-kpi-card title="Rejected" icon="cancel" color="danger" [value]="vm.raw.myTotalsByStatus.REJECTED"></app-kpi-card>
-      <app-kpi-card title="Special" icon="priority_high" color="warning" [value]="vm.raw.myTotalsByStatus.SPECIAL"></app-kpi-card>
+      <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
     </section>
 
-    <section class="chart-grid">
-      <app-base-chart
-        title="Status Distribution"
-        [chartType]="vm.totalsPie.type"
-        [categories]="vm.totalsPie.categories"
-        [series]="vm.totalsPie.series">
-      </app-base-chart>
+    @if (dateRangeError$ | async; as error) {
+      <p class="filter-error">{{ error }}</p>
+    }
 
-      <app-base-chart
-        title="Monthly Trend"
-        [chartType]="vm.monthlyLine.type"
-        [categories]="vm.monthlyLine.categories"
-        [series]="vm.monthlyLine.series">
-      </app-base-chart>
+    @if (dashboardData$ | async; as vm) {
+      <section class="kpi-grid">
+        <app-kpi-card title="Submitted" icon="description" color="primary" [value]="vm.raw.myTotalsByStatus.SUBMITTED"></app-kpi-card>
+        <app-kpi-card title="Approved" icon="check_circle" color="success" [value]="vm.raw.myTotalsByStatus.APPROVED"></app-kpi-card>
+        <app-kpi-card title="Rejected" icon="cancel" color="danger" [value]="vm.raw.myTotalsByStatus.REJECTED"></app-kpi-card>
+        <app-kpi-card title="Special" icon="priority_high" color="warning" [value]="vm.raw.myTotalsByStatus.SPECIAL"></app-kpi-card>
+      </section>
+
+      <section class="chart-grid">
+        <app-base-chart
+          title="Status Distribution"
+          [chartType]="vm.totalsPie.type"
+          [categories]="vm.totalsPie.categories"
+          [series]="vm.totalsPie.series">
+        </app-base-chart>
+
+        <app-base-chart
+          title="Monthly Trend"
+          [chartType]="vm.monthlyLine.type"
+          [categories]="vm.monthlyLine.categories"
+          [series]="vm.monthlyLine.series">
+        </app-base-chart>
+      </section>
+
+      <mat-card class="table-card">
+        <header class="table-header">
+          <h3>Recent Requests</h3>
+        </header>
+
+        <div class="table-wrap">
+          <table mat-table [dataSource]="vm.raw.recentRequests" class="recent-table">
+            <ng-container matColumnDef="requestId">
+              <th mat-header-cell *matHeaderCellDef>Request</th>
+              <td mat-cell *matCellDef="let row">#{{ row.requestId }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="startDate">
+              <th mat-header-cell *matHeaderCellDef>Start</th>
+              <td mat-cell *matCellDef="let row">{{ row.startDate | date: 'mediumDate' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="endDate">
+              <th mat-header-cell *matHeaderCellDef>End</th>
+              <td mat-cell *matCellDef="let row">{{ row.endDate | date: 'mediumDate' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row">{{ row.status }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="managerComment">
+              <th mat-header-cell *matHeaderCellDef>Manager Comment</th>
+              <td mat-cell *matCellDef="let row">{{ row.managerComment ?? '--' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="hrComment">
+              <th mat-header-cell *matHeaderCellDef>HR Comment</th>
+              <td mat-cell *matCellDef="let row">{{ row.hrComment ?? '--' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="specialCase">
+              <th mat-header-cell *matHeaderCellDef>Special</th>
+              <td mat-cell *matCellDef="let row">
+                @if (row.specialCase || row.status === 'SPECIAL') {
+                  <span class="status status--special">SPECIAL REQUEST</span>
+                } @else {
+                  <span>No</span>
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: recentColumns"></tr>
+          </table>
+        </div>
+      </mat-card>
+    }
+  </app-dashboard-layout>
+</ng-container>
+
+<ng-template #mobileView>
+  <app-dashboard-layout
+    title="Employee Dashboard"
+    subtitle="Personal telework metrics and recent request activity.">
+    <section class="filter-row mobile-filter-row">
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" [formControl]="fromControl" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" [formControl]="toControl" />
+      </mat-form-field>
+
+      <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
     </section>
 
-    <mat-card class="table-card">
-      <header class="table-header">
-        <h3>Recent Requests</h3>
-      </header>
+    @if (dateRangeError$ | async; as error) {
+      <p class="filter-error">{{ error }}</p>
+    }
 
-      <div class="table-wrap">
-        <table mat-table [dataSource]="vm.raw.recentRequests" class="recent-table">
-          <ng-container matColumnDef="requestId">
-            <th mat-header-cell *matHeaderCellDef>Request</th>
-            <td mat-cell *matCellDef="let row">#{{ row.requestId }}</td>
-          </ng-container>
+    @if (dashboardData$ | async; as vm) {
+      <section class="mobile-kpi-stack">
+        <app-kpi-card title="Submitted" icon="description" color="primary" [value]="vm.raw.myTotalsByStatus.SUBMITTED"></app-kpi-card>
+        <app-kpi-card title="Approved" icon="check_circle" color="success" [value]="vm.raw.myTotalsByStatus.APPROVED"></app-kpi-card>
+        <app-kpi-card title="Rejected" icon="cancel" color="danger" [value]="vm.raw.myTotalsByStatus.REJECTED"></app-kpi-card>
+        <app-kpi-card title="Special" icon="priority_high" color="warning" [value]="vm.raw.myTotalsByStatus.SPECIAL"></app-kpi-card>
+      </section>
 
-          <ng-container matColumnDef="startDate">
-            <th mat-header-cell *matHeaderCellDef>Start</th>
-            <td mat-cell *matCellDef="let row">{{ row.startDate | date: 'mediumDate' }}</td>
-          </ng-container>
+      <section class="mobile-chart-stack">
+        <div class="chart-mobile">
+          <app-base-chart
+            title="Status Distribution"
+            [chartType]="vm.totalsPie.type"
+            [categories]="vm.totalsPie.categories"
+            [series]="vm.totalsPie.series">
+          </app-base-chart>
+        </div>
 
-          <ng-container matColumnDef="endDate">
-            <th mat-header-cell *matHeaderCellDef>End</th>
-            <td mat-cell *matCellDef="let row">{{ row.endDate | date: 'mediumDate' }}</td>
-          </ng-container>
+        <div class="chart-mobile">
+          <app-base-chart
+            title="Monthly Trend"
+            [chartType]="vm.monthlyLine.type"
+            [categories]="vm.monthlyLine.categories"
+            [series]="vm.monthlyLine.series">
+          </app-base-chart>
+        </div>
+      </section>
 
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let row">{{ row.status }}</td>
-          </ng-container>
+      <section class="mobile-request-list">
+        <header class="mobile-list-header">
+          <h3>Recent Requests</h3>
+        </header>
 
-          <ng-container matColumnDef="managerComment">
-            <th mat-header-cell *matHeaderCellDef>Manager Comment</th>
-            <td mat-cell *matCellDef="let row">{{ row.managerComment || '--' }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="hrComment">
-            <th mat-header-cell *matHeaderCellDef>HR Comment</th>
-            <td mat-cell *matCellDef="let row">{{ row.hrComment || '--' }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="specialCase">
-            <th mat-header-cell *matHeaderCellDef>Special</th>
-            <td mat-cell *matCellDef="let row">
-              @if (row.specialCase || row.status === 'SPECIAL') {
-                <span class="status status--special">SPECIAL REQUEST</span>
-              } @else {
-                <span>No</span>
-              }
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: recentColumns"></tr>
-        </table>
-      </div>
-    </mat-card>
-  }
-</app-dashboard-layout>
+        @if (vm.raw.recentRequests.length === 0) {
+          <p class="mobile-empty">No recent requests.</p>
+        } @else {
+          @for (row of vm.raw.recentRequests; track row.requestId) {
+            <article class="mobile-request-card">
+              <div class="mobile-request-top">
+                <strong>Request #{{ row.requestId }}</strong>
+                <span>{{ row.status }}</span>
+              </div>
+              <p><strong>Start:</strong> {{ row.startDate | date: 'mediumDate' }}</p>
+              <p><strong>End:</strong> {{ row.endDate | date: 'mediumDate' }}</p>
+              <p><strong>Special:</strong> {{ (row.specialCase || row.status === 'SPECIAL') ? 'Yes' : 'No' }}</p>
+              <p><strong>Manager:</strong> {{ row.managerComment ?? '--' }}</p>
+              <p><strong>HR:</strong> {{ row.hrComment ?? '--' }}</p>
+            </article>
+          }
+        }
+      </section>
+    }
+  </app-dashboard-layout>
+</ng-template>

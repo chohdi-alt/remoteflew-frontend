@@ -1,1 +1,48 @@
-<p>validation-detail works!</p>
+<ng-container *ngIf="(isHandset$ | async) === true">
+  <header class="manager-mobile-header">
+    <button type="button" class="manager-mobile-header__menu" (click)="toggleDrawer()" aria-label="Open manager navigation">
+      &#9776;
+    </button>
+    <h2>Validation Detail</h2>
+  </header>
+
+  <div class="manager-nav-overlay" *ngIf="isDrawerOpen" (click)="closeDrawer()">
+    <aside class="manager-sidenav open" (click)="$event.stopPropagation()">
+      <button type="button" class="manager-sidenav__brand" routerLink="/manager/dashboard" (click)="closeDrawer()">RemoteFlow</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/dashboard" (click)="closeDrawer()">Dashboard</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/requests" (click)="closeDrawer()">Requests</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/scoring" (click)="closeDrawer()">Scoring</button>
+      <button type="button" class="manager-sidenav__item" routerLink="/manager/inbox" (click)="closeDrawer()">Inbox</button>
+      <button type="button" class="manager-sidenav__item manager-sidenav__item--logout" (click)="logout()">Logout</button>
+    </aside>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="(isHandset$ | async) === false; else mobileView">
+  <p>validation-detail works!</p>
+</ng-container>
+
+<ng-template #mobileView>
+  <section class="mobile-validation">
+    <article class="mobile-validation__card">
+      <h3>Request Info</h3>
+      <p><strong>Validation ID:</strong> {{ validationId ?? '--' }}</p>
+      <p><strong>Employee:</strong> --</p>
+      <p><strong>Date:</strong> --</p>
+    </article>
+
+    <article class="mobile-validation__card">
+      <h3>Decision</h3>
+      <p>Select an action for this request.</p>
+      <div class="mobile-validation__actions">
+        <button type="button" disabled>Approve</button>
+        <button type="button" disabled>Reject</button>
+      </div>
+    </article>
+
+    <article class="mobile-validation__card">
+      <h3>Comments</h3>
+      <textarea rows="4" placeholder="Comments will appear here when available." readonly></textarea>
+    </article>
+  </section>
+</ng-template>

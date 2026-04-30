@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
@@ -27,6 +28,8 @@ import { RealtimeSignalService } from '../../core/services/realtime-signal.servi
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DestroyRef } from '@angular/core';
 import { debounceTime } from 'rxjs/operators';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 
 interface PageState {
   pageIndex: number;
@@ -51,7 +54,7 @@ const EMPTY_PAGE: PageResponse<PendingValidationTaskDTO> = {
 @Component({
   selector: 'app-manager-requests',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatDialogModule, DashboardLayoutComponent, RequestTableComponent],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatDialogModule, DashboardLayoutComponent, RequestTableComponent],
   templateUrl: './manager-requests.component.html',
   styleUrl: './manager-requests.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -60,15 +63,22 @@ export class ManagerRequestsComponent {
   private readonly requestService = inject(RequestService);
   private readonly dialog = inject(MatDialog);
   private readonly toastr = inject(ToastrService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly realtimeSignalService = inject(RealtimeSignalService);
+  private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly pageSizeOptions = [10, 20, 50];
+  readonly isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+    map((state) => state.matches),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   private readonly pageState$ = new BehaviorSubject<PageState>({ pageIndex: 0, pageSize: 10 });
   private readonly refresh$ = new Subject<void>();
   private readonly loadingSubject = new BehaviorSubject<boolean>(false);
   readonly loading$ = this.loadingSubject.asObservable();
+  isDrawerOpen = false;
 
   constructor() {
     this.realtimeSignalService.connect();
@@ -136,6 +146,24 @@ export class ManagerRequestsComponent {
 
   refresh(): void {
     this.refresh$.next();
+  }
+
+  toggleDrawer(): void {
+    this.isDrawerOpen = !this.isDrawerOpen;
+  }
+
+  closeDrawer(): void {
+    this.isDrawerOpen = false;
+  }
+
+  logout(): void {
+    this.closeDrawer();
+    void this.authService.logout();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.closeDrawer();
   }
 
   private openDecisionDialog(row: RequestTableRow, initialAction: 'approve' | 'reject'): void {
@@ -231,5 +259,19 @@ export class ManagerRequestsComponent {
       createdAt: task.createdAt,
       taskKey: task.taskKey
     };
+  }
+
+  toStatusClass(status: string): string {
+    const value = String(status ?? '').trim().toUpperCase();
+    if (value === 'SPECIAL') {
+      return 'status status--special';
+    }
+    if (value === 'APPROVED') {
+      return 'status status--approved';
+    }
+    if (value === 'REJECTED') {
+      return 'status status--rejected';
+    }
+    return 'status status--submitted';
   }
 }
